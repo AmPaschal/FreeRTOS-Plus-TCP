@@ -382,6 +382,8 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
 {
     FreeRTOS_Socket_t * pxSocket;
 
+    FreeRTOS_debug_printf(("FreeRTOS_socket called...\n"));
+
 /* Note that this value will be over-written by the call to prvDetermineSocketSize. */
     size_t uxSocketSize = 1;
     EventGroupHandle_t xEventGroup;
@@ -462,6 +464,7 @@ Socket_t FreeRTOS_socket( BaseType_t xDomain,
                             pxSocket->u.xTCP.usMSS = ( uint16_t ) ipconfigTCP_MSS;
                             pxSocket->u.xTCP.uxRxStreamSize = ( size_t ) ipconfigTCP_RX_BUFFER_LENGTH;
                             pxSocket->u.xTCP.uxTxStreamSize = ( size_t ) FreeRTOS_round_up( ipconfigTCP_TX_BUFFER_LENGTH, ipconfigTCP_MSS );
+                            FreeRTOS_debug_printf(("Tx Stream size is %d...\n", pxSocket->u.xTCP.uxTxStreamSize));
                             /* Use half of the buffer size of the TCP windows */
                             #if ( ipconfigUSE_TCP_WIN == 1 )
                                 {
@@ -1207,6 +1210,7 @@ BaseType_t FreeRTOS_bind( Socket_t xSocket,
                           struct freertos_sockaddr const * pxAddress,
                           socklen_t xAddressLength )
 {
+    FreeRTOS_debug_printf(("FreeRTOS_bind called\n"));
     IPStackEvent_t xBindEvent;
     FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
     BaseType_t xReturn = 0;
@@ -1506,6 +1510,8 @@ BaseType_t FreeRTOS_closesocket( Socket_t xSocket )
 void * vSocketClose( FreeRTOS_Socket_t * pxSocket )
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
+
+    FreeRTOS_debug_printf(("vSocketClose called...\n"));
 
     #if ( ipconfigUSE_TCP == 1 )
         {
@@ -3036,6 +3042,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         BaseType_t xResult = -pdFREERTOS_ERRNO_EINVAL;
         TimeOut_t xTimeOut;
 
+        FreeRTOS_debug_printf(("FreeRTOS_connect called\n"));
+
         ( void ) xAddressLength;
 
         xResult = prvTCPConnectStart( pxSocket, pxAddress );
@@ -3089,7 +3097,10 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 }
 
                 /* Go sleeping until we get any down-stream event */
-                ( void ) xEventGroupWaitBits( pxSocket->xEventGroup, ( EventBits_t ) eSOCKET_CONNECT, pdTRUE /*xClearOnExit*/, pdFALSE /*xWaitAllBits*/, xRemainingTime );
+                ( void ) xEventGroupWaitBits( pxSocket->xEventGroup, ( EventBits_t ) eSOCKET_CONNECT /*|
+                ( EventBits_t ) eSOCKET_CLOSED*/, pdTRUE /*xClearOnExit*/, pdFALSE /*xWaitAllBits*/, xRemainingTime );
+
+                FreeRTOS_debug_printf(("Waking up from sleep...\n"));
             }
         }
 
@@ -3117,6 +3128,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                               struct freertos_sockaddr * pxAddress,
                               socklen_t * pxAddressLength )
     {
+
+        FreeRTOS_debug_printf(("FreeRTOS_accept called\n"));
         FreeRTOS_Socket_t * pxSocket = ( FreeRTOS_Socket_t * ) xServerSocket;
         FreeRTOS_Socket_t * pxClientSocket = NULL;
         TickType_t xRemainingTime;
@@ -3617,6 +3630,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
             /* While there are still bytes to be sent. */
             while( xBytesLeft > 0 )
             {
+
+                FreeRTOS_debug_printf(("xBytesLeft: %d --- xByteCount: %d\n", xBytesLeft, xByteCount));
+
                 /* If txStream has space. */
                 if( xByteCount > 0 )
                 {
@@ -3693,6 +3709,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 {
                     /* Only in the first round, check for non-blocking. */
                     xRemainingTime = pxSocket->xSendBlockTime;
+
+                    FreeRTOS_debug_printf(("xRemainingTime: %d\n", xRemainingTime));
 
                     #if ( ipconfigUSE_CALLBACKS != 0 )
                         {
@@ -3786,6 +3804,8 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
     {
         FreeRTOS_Socket_t * pxSocket;
         BaseType_t xResult = 0;
+
+        FreeRTOS_debug_printf(("FreeRTOS_listen called\n"));
 
         pxSocket = ( FreeRTOS_Socket_t * ) xSocket;
 
@@ -4124,7 +4144,11 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
         /* And make the length a multiple of sizeof( size_t ). */
         uxLength &= ~( sizeof( size_t ) - 1U );
 
+        FreeRTOS_debug_printf(("Creating socket stream. uxLength is %d", uxLength));
+
         uxSize = ( sizeof( *pxBuffer ) + uxLength ) - sizeof( pxBuffer->ucArray );
+
+        FreeRTOS_debug_printf(("Creating socket stream. uxSize is %d", uxSize));
 
         pxBuffer = ipCAST_PTR_TO_TYPE_PTR( StreamBuffer_t, pvPortMallocLarge( uxSize ) );
 
@@ -4504,6 +4528,9 @@ void vSocketWakeUpUser( FreeRTOS_Socket_t * pxSocket )
                 {
                     xReturn = pdTRUE;
                 }
+                /*else {
+                    xReturn = -pdFREERTOS_ERRNO_ETIMEDOUT;
+                }*/
             }
         }
 

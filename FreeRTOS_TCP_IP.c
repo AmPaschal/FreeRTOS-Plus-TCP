@@ -560,6 +560,7 @@
         {
             /* The API FreeRTOS_send() might have added data to the TX stream.  Add
              * this data to the windowing system so it can be transmitted. */
+            FreeRTOS_debug_printf(("Calling prvTCPAddTxData from xTCPSocketCheck...\n"));
             prvTCPAddTxData( pxSocket );
         }
 
@@ -678,6 +679,7 @@
  */
     static int32_t prvTCPSendPacket( FreeRTOS_Socket_t * pxSocket )
     {
+        FreeRTOS_debug_printf(("prvTCPSendPacket called...\n"));
         int32_t lResult = 0;
         UBaseType_t uxOptionsLength, uxIntermediateResult = 0;
         NetworkBufferDescriptor_t * pxNetworkBuffer;
@@ -776,6 +778,7 @@
         {
             /* prvTCPPrepareSend() might allocate a network buffer if there is data
              * to be sent. */
+             FreeRTOS_debug_printf(("Calling prvTCPPrepareSend from prvTCPSendRepeated...\n"));
             xSendLength = prvTCPPrepareSend( pxSocket, ppxNetworkBuffer, uxOptionsLength );
 
             if( xSendLength <= 0 )
@@ -1624,6 +1627,7 @@
             {
                 /* Just advancing the tail index, 'ulCount' bytes have been confirmed. */
                 ( void ) uxStreamBufferGet( pxSocket->u.xTCP.txStream, 0, NULL, ( size_t ) ulCount, pdFALSE );
+                FreeRTOS_debug_printf(("eSOCKET_SEND send in prvReadSackOption"));
                 pxSocket->xEventBits |= ( EventBits_t ) eSOCKET_SEND;
 
                 #if ipconfigSUPPORT_SELECT_FUNCTION == 1
@@ -1916,6 +1920,7 @@
             if( ( eTCPState == eCLOSED ) ||
                 ( eTCPState == eCLOSE_WAIT ) )
             {
+                //pxSocket->xEventBits |= ( EventBits_t ) eSOCKET_CLOSED;
                 /* Socket goes to status eCLOSED because of a RST.
                  * When nobody owns the socket yet, delete it. */
                 if( ( pxSocket->u.xTCP.bits.bPassQueued != pdFALSE_UNSIGNED ) ||
@@ -2127,6 +2132,7 @@
             if( pxSocket->u.xTCP.usMSS > 1U )
             {
                 lDataLen = ( int32_t ) ulTCPWindowTxGet( pxTCPWindow, pxSocket->u.xTCP.ulWindowSize, &lStreamPos );
+                FreeRTOS_debug_printf(("TCP window amount data to be sent: %d...\n", lDataLen));
             }
 
             if( lDataLen > 0 )
@@ -2229,6 +2235,7 @@
 
                     if( ( lDataLen == 0 ) && ( pxSocket->u.xTCP.bits.bWinChange == pdFALSE_UNSIGNED ) )
                     {
+                        FreeRTOS_debug_printf(("pxSocket->u.xTCP.bits.bWinChange == pdFALSE_UNSIGNED"));
                         /* If there is no data to be sent, and no window-update message,
                          * we might want to send a keep-alive message. */
                         TickType_t xAge = xTaskGetTickCount() - pxSocket->u.xTCP.xLastAliveTime;
@@ -2331,6 +2338,7 @@
             /* Let the sliding window mechanism decide what time-out is appropriate. */
             BaseType_t xResult = xTCPWindowTxHasData( &pxSocket->u.xTCP.xTCPWindow, pxSocket->u.xTCP.ulWindowSize, &ulDelayMs );
 
+            FreeRTOS_debug_printf(("ulDelayMs in prvTCPNextTimeout is %d", ulDelayMs));
             if( ulDelayMs == 0U )
             {
                 if( xResult != ( BaseType_t ) 0 )
@@ -2346,6 +2354,7 @@
             {
                 /* ulDelayMs contains the time to wait before a re-transmission. */
             }
+
 
             pxSocket->u.xTCP.usTimeout = ( uint16_t ) ipMS_TO_MIN_TICKS( ulDelayMs );
         }
@@ -2390,6 +2399,8 @@
                                       ( uint32_t ) lLength,
                                       ( int32_t ) pxSocket->u.xTCP.txStream->uxMid,
                                       ( int32_t ) pxSocket->u.xTCP.txStream->LENGTH );
+
+            FreeRTOS_debug_printf(("Adding %d to the sliding window...\n", lCount));
 
             /* Move the rxMid pointer forward up to rxHead. */
             if( lCount > 0 )
@@ -2918,6 +2929,7 @@
                                             uint32_t ulReceiveLength,
                                             UBaseType_t uxOptionsLength )
     {
+        FreeRTOS_debug_printf(("prvHandleEstablished called...\n"));
         /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
                                                                         &( ( *ppxNetworkBuffer )->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + uxIPHeaderSizeSocket( pxSocket ) ] ) );
@@ -2955,6 +2967,7 @@
                 /* _HT_ : only in case the socket's waiting? */
                 if( uxStreamBufferGet( pxSocket->u.xTCP.txStream, 0U, NULL, ( size_t ) ulCount, pdFALSE ) != 0U )
                 {
+                    FreeRTOS_debug_printf(("eSOCKET_SEND set...\n"));
                     pxSocket->xEventBits |= ( EventBits_t ) eSOCKET_SEND;
 
                     #if ipconfigSUPPORT_SELECT_FUNCTION == 1
@@ -2991,6 +3004,7 @@
 
         if( ( pxSocket->u.xTCP.bits.bFinAccepted != pdFALSE_UNSIGNED ) || ( ( ucTCPFlags & ( uint8_t ) tcpTCP_FLAG_FIN ) != 0U ) )
         {
+            FreeRTOS_debug_printf(("FIN flag is set...\n"));
             /* Peer is requesting to stop, see if we're really finished. */
             xMayClose = pdTRUE;
 
@@ -3039,6 +3053,7 @@
 
             if( xMayClose != pdFALSE )
             {
+                FreeRTOS_debug_printf(("Calling prvTCPHandleFin from prvHandleEstablished"));
                 pxSocket->u.xTCP.bits.bFinAccepted = pdTRUE_UNSIGNED;
                 xSendLength = prvTCPHandleFin( pxSocket, *ppxNetworkBuffer );
             }
@@ -3266,6 +3281,7 @@
     static BaseType_t prvTCPHandleState( FreeRTOS_Socket_t * pxSocket,
                                          NetworkBufferDescriptor_t ** ppxNetworkBuffer )
     {
+        FreeRTOS_debug_printf(("prvTCPHandleState called...\n"));
         /* Map the buffer onto the ProtocolHeader_t struct for easy access to the fields. */
         ProtocolHeaders_t * pxProtocolHeaders = ipCAST_PTR_TO_TYPE_PTR( ProtocolHeaders_t,
                                                                         &( ( *ppxNetworkBuffer )->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( *ppxNetworkBuffer ) ] ) );
@@ -3401,6 +3417,7 @@
                                     * state for the data transfer phase of the connection
                                     * The closing states are also handled here with the
                                     * use of some flags. */
+                    FreeRTOS_debug_printf(("eESTABLISHED reached...\n"));
                     xSendLength = prvHandleEstablished( pxSocket, ppxNetworkBuffer, ulReceiveLength, uxOptionsLength );
                     break;
 
@@ -3446,6 +3463,7 @@
 
         if( xSendLength > 0 )
         {
+            FreeRTOS_debug_printf(("prvSendData called..\n"));
             xSendLength = prvSendData( pxSocket, ppxNetworkBuffer, ulReceiveLength, xSendLength );
         }
 
@@ -3777,6 +3795,7 @@
 
                     /* In prvTCPHandleState() the incoming messages will be handled
                      * depending on the current state of the connection. */
+                     FreeRTOS_debug_printf(("prvTCPHandleState called from xProcessReceivedTCPPacket...\n"));
                     if( prvTCPHandleState( pxSocket, &pxNetworkBuffer ) > 0 )
                     {
                         /* prvTCPHandleState() has sent a message, see if there are more to

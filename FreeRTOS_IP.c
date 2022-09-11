@@ -1776,6 +1776,8 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
 
     iptraceNETWORK_INTERFACE_INPUT( pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer );
 
+    FreeRTOS_debug_printf(("Processing network buffer of size %u", pxNetworkBuffer->xDataLength));
+
     /* Interpret the Ethernet frame. */
     if( pxNetworkBuffer->xDataLength >= sizeof( EthernetHeader_t ) )
     {
@@ -1807,6 +1809,8 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
                     break;
 
                 case ipIPv4_FRAME_TYPE:
+
+                    FreeRTOS_debug_printf(("It's an IP type...\n"));
 
                     /* The Ethernet frame contains an IP packet. */
                     if( pxNetworkBuffer->xDataLength >= sizeof( IPPacket_t ) )
@@ -1930,6 +1934,13 @@ void vSetMultiCastIPv4MacAddress( uint32_t ulIPAddress,
 }
 /*-----------------------------------------------------------*/
 
+void print_ip_address(uint32_t ulIPAddress) {
+    char cBuffer[17];
+    cBuffer[16] = '\0';
+    FreeRTOS_inet_ntoa( ulIPAddress, cBuffer );
+    FreeRTOS_debug_printf( ( "IP Address: %s\n", cBuffer ) );
+}
+
 /**
  * @brief Check whether this IP packet is to be allowed or to be dropped.
  *
@@ -1993,6 +2004,12 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                      /* Or (during DHCP negotiation) we have no IP-address yet? */
                      ( *ipLOCAL_IP_ADDRESS_POINTER != 0U ) )
             {
+                FreeRTOS_debug_printf(("Destination IP Address\n"));
+                print_ip_address(ulDestinationIPAddress);
+                FreeRTOS_debug_printf(("Correct IP Address\n"));
+                print_ip_address(*ipLOCAL_IP_ADDRESS_POINTER);
+                FreeRTOS_debug_printf(("Broadcast IP Address"));
+                print_ip_address(ipBROADCAST_IP_ADDRESS);
                 /* Packet is not for this node, release it */
                 eReturn = eReleaseBuffer;
             }
