@@ -54,6 +54,7 @@
 #include "FreeRTOS_ARP.h"
 #include "FreeRTOS_TCP_Transmission.h"
 #include "FreeRTOS_TCP_Reception.h"
+#include <assert.h>
 
 /* Just make sure the contents doesn't get compiled if TCP is not enabled. */
 #if ipconfigUSE_TCP == 1
@@ -206,6 +207,8 @@
         TCPWindow_t * pxTCPWindow = &( pxSocket->u.xTCP.xTCPWindow );
         BaseType_t xReturn = pdFALSE;
 
+        FreeRTOS_debug_printf(("prvSingleStepTCPHeaderOptions called...\n"));
+
         if( pucPtr[ 0U ] == tcpTCP_OPT_END )
         {
             /* End of options. */
@@ -247,6 +250,7 @@
         #endif /* ipconfigUSE_TCP_WIN */
         else if( pucPtr[ 0 ] == tcpTCP_OPT_MSS )
         {
+            FreeRTOS_debug_printf(("MSS Option found...\n"));
             /* Confirm that the option fits in the remaining buffer space. */
             if( ( uxRemainingOptionsBytes < tcpTCP_OPT_MSS_LEN ) || ( pucPtr[ 1 ] != tcpTCP_OPT_MSS_LEN ) )
             {
@@ -261,29 +265,29 @@
 
                 if( pxSocket->u.xTCP.usMSS != uxNewMSS )
                 {
-                    /* Perform a basic check on the the new MSS. */
+                    /* Perform a basic check on the the new MSS. 
                     if( uxNewMSS == 0U )
                     {
                         lIndex = -1;
 
-                        /* Return Condition found. */
+                        /* Return Condition found. 
                         xReturn = pdTRUE;
                     }
                     else
-                    {
+                    {*/
                         FreeRTOS_debug_printf( ( "MSS change %u -> %u\n", pxSocket->u.xTCP.usMSS, ( unsigned ) uxNewMSS ) );
-                    }
+                    //}
                 }
 
                 /* If a 'return' condition has not been found. */
                 if( xReturn == pdFALSE )
                 {
                     /* Restrict the minimum value of segment length to the ( Minimum IP MTU (576) - IP header(20) - TCP Header(20) ).
-                     * See "RFC 791 section 3.1 Total Length" for more details. */
+                     * See "RFC 791 section 3.1 Total Length" for more details. 
                     if( uxNewMSS < tcpMINIMUM_SEGMENT_LENGTH )
                     {
                         uxNewMSS = tcpMINIMUM_SEGMENT_LENGTH;
-                    }
+                    }*/
 
                     if( pxSocket->u.xTCP.usMSS > uxNewMSS )
                     {
@@ -296,6 +300,10 @@
                              * using.  Use that as well. */
                             FreeRTOS_debug_printf( ( "Change mss %d => %u\n", pxSocket->u.xTCP.usMSS, ( unsigned ) uxNewMSS ) );
                         }
+
+                        FreeRTOS_debug_printf(("uxNewMSS value is %d...\n", uxNewMSS));
+
+                        assert(uxNewMSS > 0);
 
                         pxTCPWindow->xSize.ulRxWindowLength = ( ( uint32_t ) uxNewMSS ) * ( pxTCPWindow->xSize.ulRxWindowLength / ( ( uint32_t ) uxNewMSS ) );
                         pxTCPWindow->usMSSInit = ( uint16_t ) uxNewMSS;
