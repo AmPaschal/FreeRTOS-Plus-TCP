@@ -132,7 +132,9 @@
             if( pxNetworkBuffer->xDataLength > uxOptionOffset )
             {
                 /* Validate options size calculation. */
-                if( uxOptionsLength <= ( pxNetworkBuffer->xDataLength - uxOptionOffset ) )
+                //if( uxOptionsLength <= ( pxNetworkBuffer->xDataLength - uxOptionOffset ) ) Removing to replicate CVE-2018-16524
+                assert(uxOptionsLength <= ( pxNetworkBuffer->xDataLength - uxOptionOffset ));
+                if( pdTRUE ) 
                 {
                     if( ( pxTCPHeader->ucTCPFlags & tcpTCP_FLAG_SYN ) != ( uint8_t ) 0U )
                     {
@@ -167,7 +169,7 @@
                         }
 
                         uxOptionsLength -= ( size_t ) lResult;
-                        pucPtr = &( pucPtr[ lResult ] );
+                        pucPtr = &( pucPtr[ lResult ] ); // TODO: potential out of bound read
                     }
                 }
             }
@@ -219,12 +221,13 @@
             /* NOP option, inserted to make the length a multiple of 4. */
             lIndex = 1;
         }
-        else if( uxRemainingOptionsBytes < 2U )
+        /* else if( uxRemainingOptionsBytes < 2U )
+        * Removing to replicate CVE-2018-16524
         {
             /* Any other well-formed option must be at least two bytes: the option
-             * type byte followed by a length byte. */
+             * type byte followed by a length byte. 
             lIndex = -1;
-        }
+        } */
 
         #if ( ipconfigUSE_TCP_WIN != 0 )
             else if( pucPtr[ 0 ] == tcpTCP_OPT_WSOPT )
@@ -252,6 +255,7 @@
         {
             FreeRTOS_debug_printf(("MSS Option found...\n"));
             /* Confirm that the option fits in the remaining buffer space. */
+            //if( ( uxRemainingOptionsBytes < tcpTCP_OPT_MSS_LEN ) || ( pucPtr[ 1 ] != tcpTCP_OPT_MSS_LEN ) )  Removing to replicate CVE-2018-16524
             if( ( uxRemainingOptionsBytes < tcpTCP_OPT_MSS_LEN ) || ( pucPtr[ 1 ] != tcpTCP_OPT_MSS_LEN ) )
             {
                 lIndex = -1;
