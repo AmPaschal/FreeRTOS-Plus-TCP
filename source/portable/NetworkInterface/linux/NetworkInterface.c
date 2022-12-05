@@ -470,9 +470,9 @@ static int prvOpenSelectedNetworkInterface( pcap_if_t * pxAllNetworkInterfaces )
     }
 
     /* Open the selected interface. */
-    if( prvOpenInterface( pxInterface->name ) == pdPASS )
+    if( prvOpenInterface( "tap0" ) == pdPASS )
     {
-        FreeRTOS_debug_printf( ( "Successfully opened interface number %d.\n", x + 1 ) );
+        FreeRTOS_debug_printf( ( "Successfully opened interface tap0.\n") );
         ret = pdPASS;
     }
     else
