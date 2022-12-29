@@ -38,6 +38,7 @@
 /* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
+#include <assert.h>
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
@@ -621,6 +622,8 @@
         configASSERT( pxNetworkBuffer != NULL );
         configASSERT( pxNetworkBuffer->pucEthernetBuffer != NULL );
 
+        FreeRTOS_debug_printf(("xProcessReceivedTCPPacket called...\n"));
+
         /* Map the buffer onto a ProtocolHeaders_t struct for easy access to the fields. */
 
         /* MISRA Ref 11.3.1 [Misaligned access] */
@@ -628,10 +631,12 @@
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
+        assert(pxDescriptor->xDataLength - (ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER) >= sizeof(TCPHeader_t));
         FreeRTOS_Socket_t * pxSocket;
         uint16_t ucTCPFlags = pxProtocolHeaders->xTCPHeader.ucTCPFlags;
         uint32_t ulLocalIP;
         uint16_t usLocalPort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usDestinationPort );
+        FreeRTOS_debug_printf(("The dest port is %d...\n", usLocalPort));
         uint16_t usRemotePort = FreeRTOS_htons( pxProtocolHeaders->xTCPHeader.usSourcePort );
         uint32_t ulRemoteIP;
         uint32_t ulSequenceNumber = FreeRTOS_ntohl( pxProtocolHeaders->xTCPHeader.ulSequenceNumber );

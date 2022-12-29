@@ -1528,7 +1528,7 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                 if( xCheckSizeFields( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength ) != pdPASS )
                 {
                     /* Some of the length checks were not successful. */
-                    eReturn = eReleaseBuffer;
+                    //eReturn = eReleaseBuffer;
                 }
             }
 
@@ -1603,6 +1603,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
     UBaseType_t uxHeaderLength = ( UBaseType_t ) ( ( uxLength & 0x0FU ) << 2 );
     uint8_t ucProtocol;
 
+    FreeRTOS_debug_printf(("prvProcessIPPacket called...\n"));
+
     /* Bound the calculated header length: take away the Ethernet header size,
      * then check if the IP header is claiming to be longer than the remaining
      * total packet size. Also check for minimal header field length. */
@@ -1616,6 +1618,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
         ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
         /* Check if the IP headers are acceptable and if it has our destination. */
         eReturn = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
+
+        FreeRTOS_debug_printf(("prvAllowIPPacket returned %d...\n", eReturn));
 
         /* MISRA Ref 14.3.1 [Configuration dependent invariant] */
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
