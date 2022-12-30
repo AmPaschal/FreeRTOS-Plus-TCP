@@ -1626,6 +1626,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
             /* Are there IP-options. */
             if( uxHeaderLength > ipSIZE_OF_IPv4_HEADER )
             {
+                FreeRTOS_debug_printf(("IP header contains options...\n"));
                 /* The size of the IP-header is larger than 20 bytes.
                  * The extra space is used for IP-options. */
                 #if ( ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS != 0 )
@@ -1642,11 +1643,12 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
 
                         ( void ) memmove( pucTarget, pucSource, xMoveLen );
                         pxNetworkBuffer->xDataLength -= optlen;
-                        pxIPHeader->usLength = FreeRTOS_htons( FreeRTOS_ntohs( pxIPHeader->usLength ) - optlen );
+                        FreeRTOS_debug_printf(("IP options removed without updating length fields...\n"));
+                        //pxIPHeader->usLength = FreeRTOS_htons( FreeRTOS_ntohs( pxIPHeader->usLength ) - optlen );
 
                         /* Rewrite the Version/IHL byte to indicate that this packet has no IP options. */
-                        pxIPHeader->ucVersionHeaderLength = ( pxIPHeader->ucVersionHeaderLength & 0xF0U ) | /* High nibble is the version. */
-                                                            ( ( ipSIZE_OF_IPv4_HEADER >> 2 ) & 0x0FU );
+                        // pxIPHeader->ucVersionHeaderLength = ( pxIPHeader->ucVersionHeaderLength & 0xF0U ) | /* High nibble is the version. */
+                        //                                     ( ( ipSIZE_OF_IPv4_HEADER >> 2 ) & 0x0FU );
                     }
                 #else /* if ( ipconfigIP_PASS_PACKETS_WITH_IP_OPTIONS != 0 ) */
                     {
