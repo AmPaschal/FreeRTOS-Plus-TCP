@@ -387,6 +387,14 @@ static int prvSetDeviceModes()
             break;
         }
 
+        ret = pcap_set_immediate_mode(pxOpenedInterfaceHandle, 10);
+
+        if( ( ret != 0 ) && ( ret != PCAP_ERROR_ACTIVATED ) )
+        {
+            FreeRTOS_printf( ( "coult not set immediate mode\n" ) );
+            break;
+        }
+
         ret = pdPASS;
     } while( 0 );
 
