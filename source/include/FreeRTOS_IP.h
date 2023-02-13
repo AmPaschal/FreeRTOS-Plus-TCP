@@ -165,6 +165,7 @@ typedef struct xNETWORK_BUFFER
     uint32_t ulIPAddress;                      /**< Source or destination IP address, depending on usage scenario. */
     uint8_t * pucEthernetBuffer;               /**< Pointer to the start of the Ethernet frame. */
     size_t xDataLength;                        /**< Starts by holding the total Ethernet frame length, then the UDP/TCP payload length. */
+    size_t xLengthAllocated;                   /**< The total length of the allocated buffer, including space for the received ethernet frame */
     uint16_t usPort;                           /**< Source or destination port, depending on usage scenario. */
     uint16_t usBoundPort;                      /**< The port to which a transmitting socket is bound. */
     #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )

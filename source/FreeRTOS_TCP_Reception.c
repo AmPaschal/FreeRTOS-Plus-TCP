@@ -133,7 +133,6 @@
             {
                 /* Validate options size calculation. */
                 //if( uxOptionsLength <= ( pxNetworkBuffer->xDataLength - uxOptionOffset ) ) Removing to replicate CVE-2018-16524
-                assert(uxOptionsLength <= ( pxNetworkBuffer->xDataLength - uxOptionOffset ));
                 if( pdTRUE ) 
                 {
                     if( ( pxTCPHeader->ucTCPFlags & tcpTCP_FLAG_SYN ) != ( uint8_t ) 0U )
@@ -149,6 +148,8 @@
                      *  corrupted, we don't like to run into invalid memory and crash. */
                     for( ; ; )
                     {
+                        FreeRTOS_debug_printf( ( "prvCheckOptions: %lu bytes left\n", uxOptionsLength ) );
+                        
                         if( uxOptionsLength == 0U )
                         {
                             /* coverity[break_stmt] : Break statement terminating the loop */

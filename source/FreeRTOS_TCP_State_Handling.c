@@ -36,6 +36,7 @@
 /* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
+#include <sanitizer/asan_interface.h>
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
@@ -1013,11 +1014,21 @@
 
             vTCPStateChange( pxReturn, eSYN_FIRST );
 
+            // We want to unpoison the previously poisoned memory so we can copy out of it. This may be a bug actually
+            ASAN_UNPOISON_MEMORY_REGION(pxNetworkBuffer->pucEthernetBuffer + pxNetworkBuffer->xDataLength, pxNetworkBuffer->xLengthAllocated - pxNetworkBuffer->xDataLength);
+            FreeRTOS_debug_printf(("Unpoisoning address from %p to %p\n", pxNetworkBuffer->pucEthernetBuffer + pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer +  pxNetworkBuffer->xLengthAllocated));
+
             /* Make a copy of the header up to the TCP header.  It is needed later
              * on, whenever data must be sent to the peer. */
             ( void ) memcpy( ( void * ) pxReturn->u.xTCP.xPacket.u.ucLastPacket,
                              ( const void * ) pxNetworkBuffer->pucEthernetBuffer,
                              sizeof( pxReturn->u.xTCP.xPacket.u.ucLastPacket ) );
+
+            // We poison the memory again to catch any bugs
+            ASAN_POISON_MEMORY_REGION(pxNetworkBuffer->pucEthernetBuffer + pxNetworkBuffer->xDataLength, pxNetworkBuffer->xLengthAllocated - pxNetworkBuffer->xDataLength);
+
+            FreeRTOS_debug_printf(("Poisoning address from %p to %p\n", pxNetworkBuffer->pucEthernetBuffer + pxNetworkBuffer->xDataLength, pxNetworkBuffer->pucEthernetBuffer +  pxNetworkBuffer->xLengthAllocated));
+
         }
 
         return pxReturn;
