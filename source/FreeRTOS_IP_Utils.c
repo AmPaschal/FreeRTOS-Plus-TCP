@@ -523,6 +523,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
 
         if( usLength < uxIPHeaderLength )
         {
+            FreeRTOS_debug_printf(("IP header length greater than length of IP packet...\n"));
             usChecksum = ipINVALID_LENGTH;
             DEBUG_SET_TRACE_VARIABLE( xLocation, 3 );
             break;
@@ -530,6 +531,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
 
         if( uxBufferLength < ( size_t ) ( ipSIZE_OF_ETH_HEADER + ( size_t ) usLength ) )
         {
+            FreeRTOS_debug_printf(("Frame length greater than available buffer...\n"));
             usChecksum = ipINVALID_LENGTH;
             DEBUG_SET_TRACE_VARIABLE( xLocation, 4 );
             break;
@@ -756,6 +758,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         if( xOutgoingPacket != pdFALSE )
         {
             FreeRTOS_debug_printf(("Checksum generated and added to outgoing packet...\n"));
+            FreeRTOS_debug_printf(("Offset of checksum: %d...\n", (uint8_t*)(&pxProtPack->xTCPPacket.xTCPHeader.usChecksum) - pucEthernetBuffer));
             switch( ucProtocol )
             {
                 case ipPROTOCOL_UDP:
