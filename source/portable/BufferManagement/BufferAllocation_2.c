@@ -42,6 +42,7 @@
 
 /* Standard includes. */
 #include <stdint.h>
+#include <sanitizer/asan_interface.h>
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
@@ -302,9 +303,16 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
                     *( ( NetworkBufferDescriptor_t ** ) ( pxReturn->pucEthernetBuffer ) ) = pxReturn;
                     pxReturn->pucEthernetBuffer += ipBUFFER_PADDING;
 
+
+
                     /* Store the actual size of the allocated buffer, which may be
                      * greater than the original requested size. */
                     pxReturn->xDataLength = xRequestedSizeBytesCopy;
+                    pxReturn->xLengthAllocated = xRequestedSizeBytesCopy;
+
+                    ASAN_POISON_MEMORY_REGION( pxReturn->pucEthernetBuffer + xRequestedSizeBytes, xRequestedSizeBytesCopy - xRequestedSizeBytes);
+
+                    FreeRTOS_debug_printf(("Poisoning address from %p to %p\n", pxReturn->pucEthernetBuffer + xRequestedSizeBytes, pxReturn->pucEthernetBuffer + xRequestedSizeBytesCopy));
 
                     #if ( ipconfigUSE_LINKED_RX_MESSAGES != 0 )
                         {
