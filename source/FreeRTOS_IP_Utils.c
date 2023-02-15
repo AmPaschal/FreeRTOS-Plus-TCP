@@ -579,12 +579,12 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         }
         else if( ucProtocol == ( uint8_t ) ipPROTOCOL_TCP )
         {
-            if( uxBufferLength < ( uxIPHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_TCP_HEADER ) )
-            {
-                usChecksum = ipINVALID_LENGTH;
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 6 );
-                break;
-            }
+            // if( uxBufferLength < ( uxIPHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_TCP_HEADER ) )
+            // {
+            //     usChecksum = ipINVALID_LENGTH;
+            //     DEBUG_SET_TRACE_VARIABLE( xLocation, 6 );
+            //     break;
+            // }
 
             FreeRTOS_debug_printf(("TCP checksum is %d and the hex value is ", pxProtPack->xTCPPacket.xTCPHeader.usChecksum));
             print_hex((unsigned const char *) &pxProtPack->xTCPPacket.xTCPHeader.usChecksum, 2);

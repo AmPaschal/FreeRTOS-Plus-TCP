@@ -797,6 +797,7 @@
 
         /* We send out the TCP Maximum Segment Size option with our SYN[+ACK]. */
 
+        FreeRTOS_debug_printf(("Unpoisoning address from %p to %p\n", pxTCPHeader->ucOptdata, pxTCPHeader->ucOptdata + 3));
         ASAN_UNPOISON_MEMORY_REGION( pxTCPHeader->ucOptdata, 4 );
 
         pxTCPHeader->ucOptdata[ 0 ] = ( uint8_t ) tcpTCP_OPT_MSS;
@@ -808,6 +809,7 @@
             {
                 pxSocket->u.xTCP.ucMyWinScaleFactor = prvWinScaleFactor( pxSocket );
 
+                FreeRTOS_debug_printf(("Unpoisoning address from %p to %p\n", pxTCPHeader->ucOptdata + 4, pxTCPHeader->ucOptdata + 7));
                 ASAN_UNPOISON_MEMORY_REGION( pxTCPHeader->ucOptdata + 4, 4 );
                 
                 pxTCPHeader->ucOptdata[ 4 ] = tcpTCP_OPT_NOOP;
@@ -824,6 +826,7 @@
 
         #if ( ipconfigUSE_TCP_WIN != 0 )
             {
+                FreeRTOS_debug_printf(("Unpoisoning address from %p to %p\n", pxTCPHeader->ucOptdata + 8, pxTCPHeader->ucOptdata + 11));
                 ASAN_UNPOISON_MEMORY_REGION( pxTCPHeader->ucOptdata + 8, 4 );
 
                 pxTCPHeader->ucOptdata[ uxOptionsLength ] = tcpTCP_OPT_NOOP;
