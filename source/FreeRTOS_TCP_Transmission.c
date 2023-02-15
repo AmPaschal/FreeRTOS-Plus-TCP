@@ -39,6 +39,7 @@
 /* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
+#include <sanitizer/asan_interface.h>
 
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
@@ -796,6 +797,8 @@
 
         /* We send out the TCP Maximum Segment Size option with our SYN[+ACK]. */
 
+        ASAN_UNPOISON_MEMORY_REGION( pxTCPHeader->ucOptdata, 4 );
+
         pxTCPHeader->ucOptdata[ 0 ] = ( uint8_t ) tcpTCP_OPT_MSS;
         pxTCPHeader->ucOptdata[ 1 ] = ( uint8_t ) tcpTCP_OPT_MSS_LEN;
         pxTCPHeader->ucOptdata[ 2 ] = ( uint8_t ) ( usMSS >> 8 );
@@ -805,6 +808,8 @@
             {
                 pxSocket->u.xTCP.ucMyWinScaleFactor = prvWinScaleFactor( pxSocket );
 
+                ASAN_UNPOISON_MEMORY_REGION( pxTCPHeader->ucOptdata + 4, 4 );
+                
                 pxTCPHeader->ucOptdata[ 4 ] = tcpTCP_OPT_NOOP;
                 pxTCPHeader->ucOptdata[ 5 ] = ( uint8_t ) ( tcpTCP_OPT_WSOPT );
                 pxTCPHeader->ucOptdata[ 6 ] = ( uint8_t ) ( tcpTCP_OPT_WSOPT_LEN );
@@ -819,6 +824,8 @@
 
         #if ( ipconfigUSE_TCP_WIN != 0 )
             {
+                ASAN_UNPOISON_MEMORY_REGION( pxTCPHeader->ucOptdata + 8, 4 );
+
                 pxTCPHeader->ucOptdata[ uxOptionsLength ] = tcpTCP_OPT_NOOP;
                 pxTCPHeader->ucOptdata[ uxOptionsLength + 1U ] = tcpTCP_OPT_NOOP;
                 pxTCPHeader->ucOptdata[ uxOptionsLength + 2U ] = tcpTCP_OPT_SACK_P; /* 4: Sack-Permitted Option. */
