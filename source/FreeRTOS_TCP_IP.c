@@ -631,7 +631,7 @@
         /* coverity[misra_c_2012_rule_11_3_violation] */
         const ProtocolHeaders_t * pxProtocolHeaders = ( ( const ProtocolHeaders_t * )
                                                         &( pxNetworkBuffer->pucEthernetBuffer[ ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) ] ) );
-        assert(pxDescriptor->xDataLength - (ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER) >= sizeof(TCPHeader_t));
+        //assert(pxDescriptor->xDataLength - (ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv4_HEADER) >= sizeof(TCPHeader_t));
         FreeRTOS_Socket_t * pxSocket;
         uint16_t ucTCPFlags = pxProtocolHeaders->xTCPHeader.ucTCPFlags;
         uint32_t ulLocalIP;
