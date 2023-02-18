@@ -1586,6 +1586,50 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
 }
 /*-----------------------------------------------------------*/
 
+
+BaseType_t checkFuzzTerminatingSignal(NetworkBufferDescriptor_t * const pxNetworkBuffer) {
+    
+    uint8_t *ethernetBuffer = pxNetworkBuffer->pucEthernetBuffer;
+
+    uint8_t termination_payload[5] = {0x11, 0x22, 0x11, 0x33, 0x44};
+
+    if (pxNetworkBuffer->xDataLength < sizeof(UDPPacket_t) + sizeof(termination_payload)) {
+        return pdFAIL;
+    }
+
+    uint8_t comparisonBytes[5];
+    memcpy(comparisonBytes, ethernetBuffer + 42, sizeof(termination_payload));            // Get destination port field
+    
+    if (memcmp(comparisonBytes, termination_payload, sizeof(termination_payload)) != 0) {
+        // The extracted bytes are not equal
+        return pdFAIL;
+    }
+
+    FreeRTOS_debug_printf(("FreeRTOS receives terminating signal...\n"));
+
+    // swap mac address in ethernet header of ethernetBuffer
+    uint8_t destinationMac[6];
+    memcpy(destinationMac, ethernetBuffer, 6);
+    memcpy(ethernetBuffer, ethernetBuffer + 6, 6);
+    memcpy(ethernetBuffer + 6, destinationMac, 6);
+
+    // swap IP address in IPv4 header of ethernetBuffer
+    uint8_t ipAddress[4];
+    memcpy(ipAddress, ethernetBuffer + 26, 4);
+    memcpy(ethernetBuffer + 26, ethernetBuffer + 30, 4);
+    memcpy(ethernetBuffer + 30, ipAddress, 4);
+
+    // swap UDP ports in UDP header of ethernetBuffer
+    uint8_t udpPorts[2];
+    memcpy(udpPorts, ethernetBuffer + 34, 2);
+    memcpy(ethernetBuffer + 34, ethernetBuffer + 36, 2);
+    memcpy(ethernetBuffer + 36, udpPorts, 2);
+
+    xNetworkInterfaceOutput(pxNetworkBuffer, pdTRUE);
+
+    return pdPASS;
+}
+
 /**
  * @brief Process an IP-packet.
  *
@@ -1735,7 +1779,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                                /* Note the header values required prior to the checksum
                                 * generation as the checksum pseudo header may clobber some of
                                 * these values. */
-                               usLength = FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength );
+                               usLength = FreeRTOS_ntohs( pxUDPPacket->xUDPHeader.usLength ); // Potential vulnerability as usLength is not validated
 
                                if( ( pxNetworkBuffer->xDataLength < sizeof( UDPPacket_t ) ) ||
                                    ( ( ( size_t ) usLength ) < sizeof( UDPHeader_t ) ) )
@@ -1746,6 +1790,9 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                                {
                                    /* The UDP packet is bigger than the IP-payload. Something is wrong, drop the packet. */
                                    eReturn = eReleaseBuffer;
+                               } 
+                               else if (checkFuzzTerminatingSignal(pxNetworkBuffer) == pdPASS) {
+                                    eReturn = eReleaseBuffer;
                                }
                                else
                                {
