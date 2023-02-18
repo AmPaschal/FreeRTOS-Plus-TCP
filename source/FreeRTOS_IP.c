@@ -1528,7 +1528,7 @@ static eFrameProcessingResult_t prvAllowIPPacket( const IPPacket_t * const pxIPP
                 if( xCheckSizeFields( ( uint8_t * ) ( pxNetworkBuffer->pucEthernetBuffer ), pxNetworkBuffer->xDataLength ) != pdPASS )
                 {
                     /* Some of the length checks were not successful. */
-                    //eReturn = eReleaseBuffer;
+                    // eReturn = eReleaseBuffer;
                 }
             }
 
@@ -1608,13 +1608,14 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
     /* Bound the calculated header length: take away the Ethernet header size,
      * then check if the IP header is claiming to be longer than the remaining
      * total packet size. Also check for minimal header field length. */
-    if( ( uxHeaderLength > ( pxNetworkBuffer->xDataLength - ipSIZE_OF_ETH_HEADER ) ) ||
-        ( uxHeaderLength < ipSIZE_OF_IPv4_HEADER ) )
-    {
-        eReturn = eReleaseBuffer;
-    }
-    else
-    {
+    // if( ( uxHeaderLength > ( pxNetworkBuffer->xDataLength - ipSIZE_OF_ETH_HEADER ) ) ||
+    //     ( uxHeaderLength < ipSIZE_OF_IPv4_HEADER ) )
+    // {
+    //     FreeRTOS_debug_printf(("uxHeaderLength is %d and invalid...\n", uxHeaderLength));
+    //     eReturn = eReleaseBuffer;
+    // }
+    // else
+    // {
         ucProtocol = pxIPPacket->xIPHeader.ucProtocol;
         /* Check if the IP headers are acceptable and if it has our destination. */
         eReturn = prvAllowIPPacket( pxIPPacket, pxNetworkBuffer, uxHeaderLength );
@@ -1625,8 +1626,11 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
         /* More details at: https://github.com/FreeRTOS/FreeRTOS-Plus-TCP/blob/main/MISRA.md#rule-143 */
         /* coverity[misra_c_2012_rule_14_3_violation] */
         /* coverity[cond_const] */
+
+        FreeRTOS_debug_printf(("prvAllowIPPacket returns %d...\n", eReturn));
         if( eReturn == eProcessBuffer )
         {
+            FreeRTOS_debug_printf(("uxHeaderLength is %d...\n", uxHeaderLength));
             /* Are there IP-options. */
             if( uxHeaderLength > ipSIZE_OF_IPv4_HEADER )
             {
@@ -1643,6 +1647,8 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                         uint8_t * pucTarget = ( uint8_t * ) &( pxNetworkBuffer->pucEthernetBuffer[ sizeof( EthernetHeader_t ) + ipSIZE_OF_IPv4_HEADER ] );
                         /* How many: total length minus the options and the lower headers. */
                         const size_t xMoveLen = pxNetworkBuffer->xDataLength - ( optlen + ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_ETH_HEADER );
+
+                        FreeRTOS_debug_printf(("xMoveLen is %d...\n", xMoveLen));
 
                         ( void ) memmove( pucTarget, pucSource, xMoveLen );
                         pxNetworkBuffer->xDataLength -= optlen;
@@ -1808,7 +1814,7 @@ static eFrameProcessingResult_t prvProcessIPPacket( IPPacket_t * pxIPPacket,
                 }
             }
         }
-    }
+    //}
 
     return eReturn;
 }
