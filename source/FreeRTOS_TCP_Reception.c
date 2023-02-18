@@ -308,8 +308,6 @@
 
                         FreeRTOS_debug_printf(("uxNewMSS value is %d...\n", uxNewMSS));
 
-                        assert(uxNewMSS > 0);
-
                         pxTCPWindow->xSize.ulRxWindowLength = ( ( uint32_t ) uxNewMSS ) * ( pxTCPWindow->xSize.ulRxWindowLength / ( ( uint32_t ) uxNewMSS ) );
                         pxTCPWindow->usMSSInit = ( uint16_t ) uxNewMSS;
                         pxTCPWindow->usMSS = ( uint16_t ) uxNewMSS;
