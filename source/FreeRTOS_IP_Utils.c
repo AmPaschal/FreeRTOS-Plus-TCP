@@ -428,6 +428,24 @@ void vPreCheckConfigs( void )
     #endif /* if ( configASSERT_DEFINED == 1 ) */
 }
 
+/*!
+ * @brief print binary packet in hex
+ * @param [in] bin_daa data to print
+ * @param [in] len length of the data
+ */
+static void print_hex( unsigned const char * const bin_data,
+                       size_t len )
+{
+    size_t i;
+
+    for( i = 0; i < len; ++i )
+    {
+        FreeRTOS_debug_printf( ( "%.2X ", bin_data[ i ] ) );
+    }
+
+    FreeRTOS_debug_printf( ( "\n" ) );
+}
+
 /**
  * @brief Generate or check the protocol checksum of the data sent in the first parameter.
  *        At the same time, the length of the packet and the length of the different layers
@@ -463,6 +481,8 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
     uint16_t ucVersionHeaderLength;
     DEBUG_DECLARE_TRACE_VARIABLE( BaseType_t, xLocation, 0 );
 
+    FreeRTOS_debug_printf(("usGenerateProtocolChecksum called...\n"));
+
     /* Introduce a do-while loop to allow use of break statements.
      * Note: MISRA prohibits use of 'goto', thus replaced with breaks. */
     do
@@ -488,6 +508,8 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         ucVersionHeaderLength = ( ucVersionHeaderLength & ( uint8_t ) 0x0FU ) << 2;
         uxIPHeaderLength = ( UBaseType_t ) ucVersionHeaderLength;
 
+        FreeRTOS_debug_printf(("uxIPHeaderLength is %d...\n", uxIPHeaderLength));
+
         /* Check for minimum packet size. */
         if( uxBufferLength < ( sizeof( IPPacket_t ) + ( uxIPHeaderLength - ipSIZE_OF_IPv4_HEADER ) ) )
         {
@@ -501,6 +523,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
 
         if( usLength < uxIPHeaderLength )
         {
+            FreeRTOS_debug_printf(("IP header length greater than length of IP packet...\n"));
             usChecksum = ipINVALID_LENGTH;
             DEBUG_SET_TRACE_VARIABLE( xLocation, 3 );
             break;
@@ -508,6 +531,7 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
 
         if( uxBufferLength < ( size_t ) ( ipSIZE_OF_ETH_HEADER + ( size_t ) usLength ) )
         {
+            FreeRTOS_debug_printf(("Frame length greater than available buffer...\n"));
             usChecksum = ipINVALID_LENGTH;
             DEBUG_SET_TRACE_VARIABLE( xLocation, 4 );
             break;
@@ -555,12 +579,15 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
         }
         else if( ucProtocol == ( uint8_t ) ipPROTOCOL_TCP )
         {
-            if( uxBufferLength < ( uxIPHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_TCP_HEADER ) )
-            {
-                usChecksum = ipINVALID_LENGTH;
-                DEBUG_SET_TRACE_VARIABLE( xLocation, 6 );
-                break;
-            }
+            // if( uxBufferLength < ( uxIPHeaderLength + ipSIZE_OF_ETH_HEADER + ipSIZE_OF_TCP_HEADER ) )
+            // {
+            //     usChecksum = ipINVALID_LENGTH;
+            //     DEBUG_SET_TRACE_VARIABLE( xLocation, 6 );
+            //     break;
+            // }
+
+            FreeRTOS_debug_printf(("TCP checksum is %d and the hex value is ", pxProtPack->xTCPPacket.xTCPHeader.usChecksum));
+            print_hex((unsigned const char *) &pxProtPack->xTCPPacket.xTCPHeader.usChecksum, 2);
 
             if( xOutgoingPacket != pdFALSE )
             {
@@ -730,6 +757,8 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
 
         if( xOutgoingPacket != pdFALSE )
         {
+            FreeRTOS_debug_printf(("Checksum generated and added to outgoing packet...\n"));
+            FreeRTOS_debug_printf(("Offset of checksum: %d...\n", (uint8_t*)(&pxProtPack->xTCPPacket.xTCPHeader.usChecksum) - pucEthernetBuffer));
             switch( ucProtocol )
             {
                 case ipPROTOCOL_UDP:
@@ -750,6 +779,8 @@ uint16_t usGenerateProtocolChecksum( uint8_t * pucEthernetBuffer,
             }
 
             usChecksum = ( uint16_t ) ipCORRECT_CRC;
+            FreeRTOS_debug_printf(("TCP updated checksum is %d and the hex value is ", pxProtPack->xTCPPacket.xTCPHeader.usChecksum));
+            print_hex((unsigned const char *) &pxProtPack->xTCPPacket.xTCPHeader.usChecksum, 2);
         }
 
         #if ( ipconfigHAS_DEBUG_PRINTF != 0 )
