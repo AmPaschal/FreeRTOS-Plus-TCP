@@ -48,6 +48,7 @@
 #include <ctype.h>
 #include <signal.h>
 #include <pcap.h>
+#include "time.h"
 
 /* ========================== Local includes =================================*/
 #include <utils/wait_for_event.h>
@@ -478,9 +479,9 @@ static int prvOpenSelectedNetworkInterface( pcap_if_t * pxAllNetworkInterfaces )
     }
 
     /* Open the selected interface. */
-    if( prvOpenInterface( "tap0" ) == pdPASS )
+    if( prvOpenInterface( "tap1" ) == pdPASS )
     {
-        FreeRTOS_debug_printf( ( "Successfully opened interface tap0.\n") );
+        FreeRTOS_debug_printf( ( "Successfully opened interface tap1.\n") );
         ret = pdPASS;
     }
     else
@@ -631,6 +632,18 @@ static void pcap_callback( unsigned char * user,
                            const struct pcap_pkthdr * pkt_header,
                            const u_char * pkt_data )
 {
+    // FreeRTOS_debug_printf( ( "Receiving < ===========  network callback user: %s len: %d caplen: %d timestamp: %d.%d\n",
+    //                          user,
+    //                          pkt_header->len,
+    //                          pkt_header->caplen,
+    //                          pkt_header->ts.tv_sec,
+    //                          pkt_header->ts.tv_usec ) );
+    // print_hex( pkt_data, pkt_header->len );
+
+    // struct timeval tv;
+    // gettimeofday(&tv, NULL);
+    // printf("IP packet received at timestamp %ld.%ld\n", tv.tv_sec, tv.tv_usec);
+
     FreeRTOS_debug_printf( ( "Receiving < ===========  network callback user: %s len: %d caplen: %d\n",
                              user,
                              pkt_header->len,
@@ -667,7 +680,8 @@ static void * prvLinuxPcapRecvThread( void * pvParam )
     sigset_t set;
 
     sigfillset( &set );
-    pthread_sigmask( SIG_SETMASK, &set, NULL );
+    sigaddset(&set, SIGALRM);
+    pthread_sigmask( SIG_BLOCK, &set, NULL );
 
     for( ; ; )
     {
