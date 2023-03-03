@@ -1275,6 +1275,9 @@
                 FreeRTOS_debug_printf( ( "MSS: sending %u\n", pxSocket->u.xTCP.usMSS ) );
             }
 
+            FreeRTOS_debug_printf(("Unpoisoning address from %p to %p\n", pxTCPHeader->ucOptdata, pxTCPHeader->ucOptdata + 3));
+            ASAN_UNPOISON_MEMORY_REGION( pxTCPHeader->ucOptdata, 4 );
+
             pxTCPHeader->ucOptdata[ 0 ] = tcpTCP_OPT_MSS;
             pxTCPHeader->ucOptdata[ 1 ] = tcpTCP_OPT_MSS_LEN;
             pxTCPHeader->ucOptdata[ 2 ] = ( uint8_t ) ( ( pxSocket->u.xTCP.usMSS ) >> 8 );
