@@ -686,8 +686,7 @@ static void * prvLinuxPcapRecvThread( void * pvParam )
     sigset_t set;
 
     sigfillset( &set );
-    sigaddset(&set, SIGALRM);
-    pthread_sigmask( SIG_BLOCK, &set, NULL );
+    pthread_sigmask( SIG_SETMASK, &set, NULL );
 
     for( ; ; )
     {
