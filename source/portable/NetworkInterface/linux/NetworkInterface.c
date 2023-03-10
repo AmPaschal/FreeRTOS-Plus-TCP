@@ -470,23 +470,29 @@ static int prvOpenSelectedNetworkInterface( pcap_if_t * pxAllNetworkInterfaces )
     int32_t x;
     int ret = pdFAIL;
 
-    /* Walk the list of devices until the selected device is located. */
-    pxInterface = pxAllNetworkInterfaces;
+    // /* Walk the list of devices until the selected device is located. */
+    // pxInterface = pxAllNetworkInterfaces;
 
-    for( x = 0L; x < ( xConfigNetworkInterfaceToUse - 1L ); x++ )
-    {
-        pxInterface = pxInterface->next;
+    // for( x = 0L; x < ( xConfigNetworkInterfaceToUse - 1L ); x++ )
+    // {
+    //     pxInterface = pxInterface->next;
+    // }
+
+    const char *interface_name = getenv("TAP_INTERFACE_NAME");
+
+    if (interface_name == NULL) {
+        interface_name = pxInterface->name;
     }
 
     /* Open the selected interface. */
-    if( prvOpenInterface( "tap1" ) == pdPASS )
+    if( prvOpenInterface( interface_name ) == pdPASS )
     {
-        FreeRTOS_debug_printf( ( "Successfully opened interface tap1.\n") );
+        FreeRTOS_debug_printf( ( "Successfully opened interface %s.\n", interface_name) );
         ret = pdPASS;
     }
     else
     {
-        FreeRTOS_printf( ( "Failed to open interface number %d.\n", x + 1 ) );
+        FreeRTOS_printf( ( "Failed to open interface number %s.\n", interface_name ) );
     }
 
     return ret;
