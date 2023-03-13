@@ -470,13 +470,13 @@ static int prvOpenSelectedNetworkInterface( pcap_if_t * pxAllNetworkInterfaces )
     int32_t x;
     int ret = pdFAIL;
 
-    // /* Walk the list of devices until the selected device is located. */
-    // pxInterface = pxAllNetworkInterfaces;
+    /* Walk the list of devices until the selected device is located. */
+    pxInterface = pxAllNetworkInterfaces;
 
-    // for( x = 0L; x < ( xConfigNetworkInterfaceToUse - 1L ); x++ )
-    // {
-    //     pxInterface = pxInterface->next;
-    // }
+    for( x = 0L; x < ( xConfigNetworkInterfaceToUse - 1L ); x++ )
+    {
+        pxInterface = pxInterface->next;
+    }
 
     const char *interface_name = getenv("TAP_INTERFACE_NAME");
 
