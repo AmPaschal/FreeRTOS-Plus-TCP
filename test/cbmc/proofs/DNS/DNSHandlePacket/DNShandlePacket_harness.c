@@ -7,11 +7,28 @@
 #include "FreeRTOS_DNS.h"
 #include "FreeRTOS_IP_Private.h"
 
-/* Function prvParseDNSReply is proven to be correct separately. */
-uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
-                           size_t xBufferLength,
-                           BaseType_t xExpected )
+
+/****************************************************************
+* Abstract DNS_ParseDNSReply proved memory safe in ParseDNSReply.
+*
+* We stub out his function to fill the payload buffer with
+* unconstrained data and return an unconstrained size.
+*
+* The function under test uses only the return value of this
+* function.
+****************************************************************/
+
+uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
+                            size_t uxBufferLength,
+                            struct freertos_addrinfo ** ppxAddressInfo,
+                            BaseType_t xExpected,
+                            uint16_t usPort )
 {
+    __CPROVER_assert( pucUDPPayloadBuffer != NULL,
+                      "Precondition: pucUDPPayloadBuffer != NULL" );
+
+    __CPROVER_havoc_object( pucUDPPayloadBuffer );
+    return nondet_uint32();
 }
 
 void harness()

@@ -25,18 +25,18 @@
 * Signature of function under test
 ****************************************************************/
 
-uint32_t prvParseDNSReply( uint8_t * pucUDPPayloadBuffer,
-                           size_t uxBufferLength,
-                           BaseType_t xExpected );
+uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer,
+                            size_t uxBufferLength,
+                            struct freertos_addrinfo ** ppxAddressInfo,
+                            BaseType_t xExpected,
+                            uint16_t usPort );
 
 /****************************************************************
 * Abstraction of DNS_ReadNameField proved in ReadNameField
 ****************************************************************/
 
-size_t DNS_ReadNameField( const uint8_t * pucByte,
-                          size_t uxRemainingBytes,
-                          char * pcName,
-                          size_t uxDestLen )
+size_t DNS_ReadNameField( ParseSet_t * pxSet,
+                              size_t uxDestLen )
 {
     __CPROVER_assert( NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE,
                       "NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE" );
@@ -47,12 +47,12 @@ size_t DNS_ReadNameField( const uint8_t * pucByte,
 
 
     /* Preconditions */
-    __CPROVER_assert( uxRemainingBytes < CBMC_MAX_OBJECT_SIZE,
+    __CPROVER_assert( pxSet->uxSourceBytesRemaining < CBMC_MAX_OBJECT_SIZE,
                       "ReadNameField: uxRemainingBytes < CBMC_MAX_OBJECT_SIZE)" );
     __CPROVER_assert( uxDestLen < CBMC_MAX_OBJECT_SIZE,
                       "ReadNameField: uxDestLen < CBMC_MAX_OBJECT_SIZE)" );
 
-    __CPROVER_assert( uxRemainingBytes <= NETWORK_BUFFER_SIZE,
+    __CPROVER_assert( pxSet->uxSourceBytesRemaining <= NETWORK_BUFFER_SIZE,
                       "ReadNameField: uxRemainingBytes <= NETWORK_BUFFER_SIZE)" );
 
     /* This precondition in the function contract for prvReadNameField
@@ -62,9 +62,9 @@ size_t DNS_ReadNameField( const uint8_t * pucByte,
      *       "ReadNameField: uxDestLen <= NAME_SIZE)");
      */
 
-    __CPROVER_assert( pucByte != NULL,
+    __CPROVER_assert( pxSet->pucByte != NULL,
                       "ReadNameField:  pucByte != NULL )" );
-    __CPROVER_assert( pcName != NULL,
+    __CPROVER_assert( pxSet->pcName != NULL,
                       "ReadNameField:  pcName != NULL )" );
 
     __CPROVER_assert( uxDestLen > 0,
@@ -74,7 +74,7 @@ size_t DNS_ReadNameField( const uint8_t * pucByte,
     size_t index;
 
     /* Postconditions */
-    __CPROVER_assume( index <= uxDestLen + 1 && index <= uxRemainingBytes );
+    __CPROVER_assume( index <= uxDestLen + 1 && index <= pxSet->uxSourceBytesRemaining );
 
     return index;
 }
@@ -83,29 +83,29 @@ size_t DNS_ReadNameField( const uint8_t * pucByte,
 * Abstraction of DNS_SkipNameField proved in SkipNameField
 ****************************************************************/
 
-size_t DNS_SkipNameField( const uint8_t * pucByte,
-                          size_t uxLength )
-{
-    __CPROVER_assert( NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE,
-                      "NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE" );
+// size_t DNS_SkipNameField( const uint8_t * pucByte,
+//                           size_t uxLength )
+// {
+//     __CPROVER_assert( NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE,
+//                       "NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE" );
 
 
-    /* Preconditions */
-    __CPROVER_assert( uxLength < CBMC_MAX_OBJECT_SIZE,
-                      "SkipNameField: uxLength < CBMC_MAX_OBJECT_SIZE)" );
-    __CPROVER_assert( uxLength <= NETWORK_BUFFER_SIZE,
-                      "SkipNameField: uxLength <= NETWORK_BUFFER_SIZE)" );
-    __CPROVER_assert( pucByte != NULL,
-                      "SkipNameField: pucByte != NULL)" );
+//     /* Preconditions */
+//     __CPROVER_assert( uxLength < CBMC_MAX_OBJECT_SIZE,
+//                       "SkipNameField: uxLength < CBMC_MAX_OBJECT_SIZE)" );
+//     __CPROVER_assert( uxLength <= NETWORK_BUFFER_SIZE,
+//                       "SkipNameField: uxLength <= NETWORK_BUFFER_SIZE)" );
+//     __CPROVER_assert( pucByte != NULL,
+//                       "SkipNameField: pucByte != NULL)" );
 
-    /* Return value */
-    size_t index;
+//     /* Return value */
+//     size_t index;
 
-    /* Postconditions */
-    __CPROVER_assume( index <= uxLength );
+//     /* Postconditions */
+//     __CPROVER_assume( index <= uxLength );
 
-    return index;
-}
+//     return index;
+// }
 
 /****************************************************************
 * Proof of prvParseDNSReply
@@ -116,6 +116,8 @@ void harness()
     size_t uxBufferLength;
     BaseType_t xExpected;
     uint8_t * pucUDPPayloadBuffer = malloc( uxBufferLength );
+    uint16_t usPort;
+    struct freertos_addrinfo *addinfo = NULL;
 
     __CPROVER_assert( NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE,
                       "NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE" );
@@ -124,7 +126,13 @@ void harness()
     __CPROVER_assume( uxBufferLength <= NETWORK_BUFFER_SIZE );
     __CPROVER_assume( pucUDPPayloadBuffer != NULL );
 
-    uint32_t index = prvParseDNSReply( pucUDPPayloadBuffer,
+    uint32_t index = DNS_ParseDNSReply( pucUDPPayloadBuffer,
                                        uxBufferLength,
-                                       xExpected );
+                                       & (addinfo),
+                                       xExpected,
+                                       usPort );
+
+    if (addinfo != NULL) {
+        FreeRTOS_freeaddrinfo( addinfo );
+    }
 }
