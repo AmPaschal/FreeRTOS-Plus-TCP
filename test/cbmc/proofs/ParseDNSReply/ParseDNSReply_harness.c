@@ -83,29 +83,29 @@ size_t DNS_ReadNameField( ParseSet_t * pxSet,
 * Abstraction of DNS_SkipNameField proved in SkipNameField
 ****************************************************************/
 
-// size_t DNS_SkipNameField( const uint8_t * pucByte,
-//                           size_t uxLength )
-// {
-//     __CPROVER_assert( NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE,
-//                       "NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE" );
+size_t DNS_SkipNameField( const uint8_t * pucByte,
+                          size_t uxLength )
+{
+    __CPROVER_assert( NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE,
+                      "NETWORK_BUFFER_SIZE < CBMC_MAX_OBJECT_SIZE" );
 
 
-//     /* Preconditions */
-//     __CPROVER_assert( uxLength < CBMC_MAX_OBJECT_SIZE,
-//                       "SkipNameField: uxLength < CBMC_MAX_OBJECT_SIZE)" );
-//     __CPROVER_assert( uxLength <= NETWORK_BUFFER_SIZE,
-//                       "SkipNameField: uxLength <= NETWORK_BUFFER_SIZE)" );
-//     __CPROVER_assert( pucByte != NULL,
-//                       "SkipNameField: pucByte != NULL)" );
+    /* Preconditions */
+    __CPROVER_assert( uxLength < CBMC_MAX_OBJECT_SIZE,
+                      "SkipNameField: uxLength < CBMC_MAX_OBJECT_SIZE)" );
+    __CPROVER_assert( uxLength <= NETWORK_BUFFER_SIZE,
+                      "SkipNameField: uxLength <= NETWORK_BUFFER_SIZE)" );
+    __CPROVER_assert( pucByte != NULL,
+                      "SkipNameField: pucByte != NULL)" );
 
-//     /* Return value */
-//     size_t index;
+    /* Return value */
+    size_t index;
 
-//     /* Postconditions */
-//     __CPROVER_assume( index <= uxLength );
+    /* Postconditions */
+    __CPROVER_assume( index <= uxLength );
 
-//     return index;
-// }
+    return index;
+}
 
 /****************************************************************
 * Proof of prvParseDNSReply
