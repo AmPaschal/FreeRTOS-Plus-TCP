@@ -613,7 +613,7 @@
             }
 
             uxResult = DNS_SkipNameField( pxSet->pucByte,
-                                          pxSet->uxSourceBytesRemaining );
+                                          sizeof (pxSet->pcName) );
 
             /* Check for a malformed response. */
             if( uxResult == 0U )
