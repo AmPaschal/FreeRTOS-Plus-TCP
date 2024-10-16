@@ -86,9 +86,11 @@
 
         iptraceICMP_PACKET_RECEIVED();
 
-        configASSERT( pxNetworkBuffer->xDataLength >= sizeof( ICMPPacket_t ) );
+        // ICSE-NIER: Commented out the following two checks to expose CVE-2018-16527
+        // configASSERT( pxNetworkBuffer->xDataLength >= sizeof( ICMPPacket_t ) );
 
-        if( pxNetworkBuffer->xDataLength >= sizeof( ICMPPacket_t ) )
+        // if( pxNetworkBuffer->xDataLength >= sizeof( ICMPPacket_t ) )
+        // if (pdTRUE)
         {
             /* Map the buffer onto a ICMP-Packet struct to easily access the
              * fields of ICMP packet. */

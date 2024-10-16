@@ -103,7 +103,13 @@ void harness()
     /* To avoid asserting on the network buffer being NULL. */
     __CPROVER_assume( pxNetworkBuffer != NULL );
 
-    pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( TCPPacket_t ) );
+    // ICSE-NIER: Made the buffer size non-deterministic to recreate CVE-2018-16603
+    // pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( TCPPacket_t ) );
+
+    uint8_t data_size;
+    __CPROVER_assume(data_size > 54);
+    pxNetworkBuffer->pucEthernetBuffer = safeMalloc( data_size );
+    pxNetworkBuffer->xDataLength = data_size;
 
     /* To avoid asserting on the ethernet buffer being NULL. */
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
