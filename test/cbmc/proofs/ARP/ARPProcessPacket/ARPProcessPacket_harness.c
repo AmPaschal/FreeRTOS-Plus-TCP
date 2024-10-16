@@ -70,16 +70,18 @@ void harness()
      * is at least allocated to sizeof(ARPPacket_t) size but eventually an even larger buffer.
      * This is not checked inside eARPProcessPacket.
      */
-    uint8_t ucBUFFER_SIZE;
+    uint8_t ucBUFFER_SIZE; 
 
-    void * xBuffer = malloc( ucBUFFER_SIZE + sizeof( ARPPacket_t ) );
-
+    // ICSE-NIER: Updated the buffer size so it can contain truncated ARP header, reproducing CVE-2018-16600
+    // void * xBuffer = malloc( ucBUFFER_SIZE + sizeof( ARPPacket_t ) );
+    void * xBuffer = malloc( ucBUFFER_SIZE + sizeof( EthernetHeader_t ) );
+    
     __CPROVER_assume( xBuffer != NULL );
 
     NetworkBufferDescriptor_t xNetworkBuffer2;
 
     xNetworkBuffer2.pucEthernetBuffer = xBuffer;
-    xNetworkBuffer2.xDataLength = ucBUFFER_SIZE + sizeof( ARPPacket_t );
+    xNetworkBuffer2.xDataLength = ucBUFFER_SIZE + sizeof( EthernetHeader_t );
 
     /*
      * This proof assumes one end point is present.

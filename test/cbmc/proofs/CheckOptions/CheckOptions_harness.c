@@ -51,6 +51,9 @@ int32_t __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvSingleStepTCPHeaderOpti
                                                                                      FreeRTOS_Socket_t * const pxSocket,
                                                                                      BaseType_t xHasSYNFlag )
 {
+    // ICSE-NIER: Added this constraint to expose CVE-2018-16524
+    __CPROVER_assert(__CPROVER_rw_ok(pucPtr, uxTotalLength), "p is readable and writable");
+
     /* CBMC model of pointers limits the size of the buffer */
 
     /* Preconditions */
@@ -72,16 +75,6 @@ int32_t __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvSingleStepTCPHeaderOpti
 
     return index;
 }
-
-size_t uxIPHeaderSizePacket( const NetworkBufferDescriptor_t * pxNetworkBuffer )
-{
-    __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer should not be NULL" );
-    return uxIPHeaderSizePacket_uxResult;
-}
-
-/****************************************************************
-* Proof of CheckOptions
-****************************************************************/
 
 void harness()
 {

@@ -131,7 +131,10 @@
             if( pxNetworkBuffer->xDataLength > uxOptionOffset )
             {
                 /* Validate options size calculation. */
-                if( uxOptionsLength <= ( pxNetworkBuffer->xDataLength - uxOptionOffset ) )
+
+                // ICSE-NIER - Commented out to reproduce CVE-2018-16524
+                // if( uxOptionsLength <= ( pxNetworkBuffer->xDataLength - uxOptionOffset ) )
+                if (pdTRUE)
                 {
                     if( ( pxTCPHeader->ucTCPFlags & tcpTCP_FLAG_SYN ) != ( uint8_t ) 0U )
                     {
@@ -262,17 +265,19 @@
                 if( pxSocket->u.xTCP.usMSS != uxNewMSS )
                 {
                     /* Perform a basic check on the the new MSS. */
-                    if( uxNewMSS == 0U )
-                    {
-                        lIndex = -1;
 
-                        /* Return Condition found. */
-                        xReturn = pdTRUE;
-                    }
-                    else
-                    {
-                        FreeRTOS_debug_printf( ( "MSS change %u -> %u\n", pxSocket->u.xTCP.usMSS, ( unsigned ) uxNewMSS ) );
-                    }
+                    // ICSE-NIER - Commented out to reproduce CVE-2018-16523
+                    // if( uxNewMSS == 0U )
+                    // {
+                    //     lIndex = -1;
+
+                    //     /* Return Condition found. */
+                    //     xReturn = pdTRUE;
+                    // }
+                    // else
+                    // {
+                    //     FreeRTOS_debug_printf( ( "MSS change %u -> %u\n", pxSocket->u.xTCP.usMSS, ( unsigned ) uxNewMSS ) );
+                    // }
                 }
 
                 /* If a 'return' condition has not been found. */
@@ -280,10 +285,12 @@
                 {
                     /* Restrict the minimum value of segment length to the ( Minimum IP MTU (576) - IP header(20) - TCP Header(20) ).
                      * See "RFC 791 section 3.1 Total Length" for more details. */
-                    if( uxNewMSS < tcpMINIMUM_SEGMENT_LENGTH )
-                    {
-                        uxNewMSS = tcpMINIMUM_SEGMENT_LENGTH;
-                    }
+
+                    // ICSE-NIER - Commented out to reproduce CVE-2018-16523
+                    // if( uxNewMSS < tcpMINIMUM_SEGMENT_LENGTH )
+                    // {
+                    //     uxNewMSS = tcpMINIMUM_SEGMENT_LENGTH;
+                    // }
 
                     if( pxSocket->u.xTCP.usMSS > uxNewMSS )
                     {

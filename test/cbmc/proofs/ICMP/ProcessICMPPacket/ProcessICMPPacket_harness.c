@@ -58,13 +58,21 @@ void harness()
 {
     NetworkBufferDescriptor_t xNetworkBuffer;
 
+    // ICSE-NIER: Updated this harness to expose CVE-2018-16527
+    uint8_t data_size;
+
+    __CPROVER_assume( data_size < 1000 );
+
     /* Allocate a ICMP packet */
-    ICMPPacket_t * const pxICMPPacket = safeMalloc( sizeof( ICMPPacket_t ) );
+    // ICMPPacket_t * const pxICMPPacket = safeMalloc( sizeof( ICMPPacket_t ) );
+    ICMPPacket_t * const pxICMPPacket = safeMalloc( data_size );
 
     __CPROVER_assume( pxICMPPacket != NULL );
 
-    xNetworkBuffer.xDataLength = sizeof( ICMPPacket_t );
+    // xNetworkBuffer.xDataLength = sizeof( ICMPPacket_t );
+    xNetworkBuffer.xDataLength = data_size;
     xNetworkBuffer.pucEthernetBuffer = pxICMPPacket;
 
     ProcessICMPPacket( &xNetworkBuffer );
 }
+

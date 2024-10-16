@@ -2,7 +2,8 @@
   "ENTRY": "CheckOptionsOuter",
   "CBMCFLAGS":
   [
-      "--unwind 1",
+    "--div-by-zero-check",  
+    "--unwind 1",
       "--unwindset __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvSingleStepTCPHeaderOptions.0:32"
   ],
   "OPT":

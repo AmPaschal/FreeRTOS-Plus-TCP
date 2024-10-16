@@ -703,7 +703,9 @@
         uxIPHeaderOffset = ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer );
 
         /* Check for a minimum packet size. */
+        // ICSE-NIER: Commented out the validation to expose CVE-2018-16603
         if( pxNetworkBuffer->xDataLength < ( uxIPHeaderOffset + ipSIZE_OF_TCP_HEADER ) )
+        // if (pdFALSE)
         {
             xResult = pdFAIL;
         }
