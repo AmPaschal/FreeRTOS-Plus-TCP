@@ -8,7 +8,7 @@ ROOT = ../..
 LINK = $(ROOT)/source/FreeRTOS_DNS.c
 
 # Harness to utilize, omit the extension!
-H_ENTRY = ulDNSHandlePacket
+H_ENTRY = harness
 
 # Extra CBMC flags to be passed during CBMC analysis
 H_CBMCFLAGS = --nondet-static --unwind 1

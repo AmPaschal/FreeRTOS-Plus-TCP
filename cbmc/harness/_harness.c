@@ -5,10 +5,6 @@
 
 #include "FreeRTOS.h"
 
-#include "task.h"
-
-#include "FreeRTOS_DNS.h"
-
 /**
  * @brief Starting point for formal analysis
  * 
