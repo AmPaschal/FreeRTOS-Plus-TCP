@@ -16,8 +16,7 @@ H_CBMCFLAGS = --nondet-static --unwind 1
 
 H_DEF =
 
-H_INC = -I$(ROOT) -I../include/ -I$(ROOT)/sys/include/  \
-        -I$(ROOT)/test/FreeRTOS-Kernel/include \
+H_INC = -I$(ROOT) -I$(ROOT)/sys/include/  \
         -I$(ROOT)/source/include
 
 # Include our special build file
