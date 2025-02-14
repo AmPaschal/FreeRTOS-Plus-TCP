@@ -5,14 +5,14 @@ ROOT = ../..
 # Defines file(s) to link to harness, MUST be a full path!
 # (We recommend $(ROOT)/os/... for defining these paths)
 # Each file is space seperated, and multiple can be defined
-LINK = $(ROOT)/source/FreeRTOS_DHCP.c
+LINK = $(ROOT)/source/FreeRTOS_DHCP.c $(ROOT)/source/FreeRTOS_IP.c
 
 # Harness to utilize, omit the extension!
 H_ENTRY = vDHCPProcess
 
 
 # Extra CBMC flags to be passed during CBMC analysis
-H_CBMCFLAGS = --nondet-static --unwind 1
+H_CBMCFLAGS = --nondet-static --unwind 1 --unwindset memcmp.0:7 --unwindset prvProcessDHCPReplies.0:4 --unwindset strlen.0:10
 
 
 H_DEF =
