@@ -56,6 +56,17 @@ const char *pcApplicationHostnameHook(void)
     return "hostname";
 }
 
+BaseType_t xApplicationGetRandomNumber(uint32_t *pulNumber) {
+
+    BaseType_t res;
+
+    uint32_t val;
+
+    *pulNumber = val;
+
+    return res;
+}
+
 /**
  * @brief Starting point for formal analysis
  * 

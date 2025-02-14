@@ -5,7 +5,7 @@ ROOT = ../..
 # Defines file(s) to link to harness, MUST be a full path!
 # (We recommend $(ROOT)/os/... for defining these paths)
 # Each file is space seperated, and multiple can be defined
-LINK = $(ROOT)/source/FreeRTOS_DHCP.c $(ROOT)/source/FreeRTOS_IP.c
+LINK = $(ROOT)/source/FreeRTOS_DHCP.c $(ROOT)/source/FreeRTOS_IP.c $(ROOT)/source/FreeRTOS_ARP.c $(ROOT)/source/FreeRTOS_IP_Timers.c
 
 # Harness to utilize, omit the extension!
 H_ENTRY = vDHCPProcess
