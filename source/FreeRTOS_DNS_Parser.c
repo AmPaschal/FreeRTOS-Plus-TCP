@@ -411,6 +411,8 @@
                             LLMNRAnswer_t * pxAnswer;
                             uint8_t * pucNewBuffer = NULL;
 
+                            BaseType_t xOffset1, xOffset2;
+
                             if( pxNetworkBuffer != NULL )
                             {
                                 if( xBufferAllocFixedSize == pdFALSE )
@@ -428,7 +430,6 @@
 
                                     if( pxNewBuffer != NULL )
                                     {
-                                        BaseType_t xOffset1, xOffset2;
 
                                         xOffset1 = ( BaseType_t ) ( pucByte - pucUDPPayloadBuffer );
                                         xOffset2 = ( BaseType_t ) ( ( ( uint8_t * ) pcRequestedName ) - pucUDPPayloadBuffer );
@@ -454,26 +455,39 @@
 
                             if( ( pxNetworkBuffer != NULL ) )
                             {
+
+                                // Make sure we have enough space:
+
+                                int64_t size = pxNetworkBuffer->xDataLength - ipUDP_PAYLOAD_OFFSET_IPv4 - xOffset1 - sizeof(LLMNRAnswer_t);
+
+                                int64_t psize = pxNetworkBuffer->xDataLength;
+                                int64_t tsize = ipUDP_PAYLOAD_OFFSET_IPv4 - xOffset1 - sizeof(LLMNRAnswer_t);
+
+                                if (pxNetworkBuffer->xDataLength < ipUDP_PAYLOAD_OFFSET_IPv4 + xOffset1 + sizeof(LLMNRAnswer_t))
+                                {
+                                    return 0;
+                                }
+
                                 pxAnswer = ( ( LLMNRAnswer_t * ) pucByte );
                                 /* We leave 'usIdentifier' and 'usQuestions' untouched */
                                 #ifndef _lint
-                                    vSetField16( pxDNSMessageHeader, DNSMessage_t, usFlags, dnsLLMNR_FLAGS_IS_REPONSE ); /* Set the response flag */
-                                    vSetField16( pxDNSMessageHeader, DNSMessage_t, usAnswers, 1 );                       /* Provide a single answer */
-                                    vSetField16( pxDNSMessageHeader, DNSMessage_t, usAuthorityRRs, 0 );                  /* No authority */
-                                    vSetField16( pxDNSMessageHeader, DNSMessage_t, usAdditionalRRs, 0 );                 /* No additional info */
+                                    // vSetField16( pxDNSMessageHeader, DNSMessage_t, usFlags, dnsLLMNR_FLAGS_IS_REPONSE ); /* Set the response flag */
+                                    // vSetField16( pxDNSMessageHeader, DNSMessage_t, usAnswers, 1 );                       /* Provide a single answer */
+                                    // vSetField16( pxDNSMessageHeader, DNSMessage_t, usAuthorityRRs, 0 );                  /* No authority */
+                                    // vSetField16( pxDNSMessageHeader, DNSMessage_t, usAdditionalRRs, 0 );                 /* No additional info */
                                 #endif /* lint */
 
                                 pxAnswer->ucNameCode = dnsNAME_IS_OFFSET;
                                 pxAnswer->ucNameOffset = ( uint8_t ) ( pcRequestedName - ( char * ) pucNewBuffer );
 
                                 #ifndef _lint
-                                    vSetField16( pxAnswer, LLMNRAnswer_t, usType, dnsTYPE_A_HOST ); /* Type A: host */
-                                    vSetField16( pxAnswer, LLMNRAnswer_t, usClass, dnsCLASS_IN );   /* 1: Class IN */
-                                    vSetField32( pxAnswer, LLMNRAnswer_t, ulTTL, dnsLLMNR_TTL_VALUE );
-                                    vSetField16( pxAnswer, LLMNRAnswer_t, usDataLength, 4 );
-                                    vSetField32( pxAnswer, LLMNRAnswer_t,
-                                                 ulIPAddress,
-                                                 FreeRTOS_ntohl( *ipLOCAL_IP_ADDRESS_POINTER ) );
+                                    // vSetField16( pxAnswer, LLMNRAnswer_t, usType, dnsTYPE_A_HOST ); /* Type A: host */
+                                    // vSetField16( pxAnswer, LLMNRAnswer_t, usClass, dnsCLASS_IN );   /* 1: Class IN */
+                                    // vSetField32( pxAnswer, LLMNRAnswer_t, ulTTL, dnsLLMNR_TTL_VALUE );
+                                    // vSetField16( pxAnswer, LLMNRAnswer_t, usDataLength, 4 );
+                                    // vSetField32( pxAnswer, LLMNRAnswer_t,
+                                    //              ulIPAddress,
+                                    //              FreeRTOS_ntohl( *ipLOCAL_IP_ADDRESS_POINTER ) );
                                 #endif /* lint */
                                 usLength = ( int16_t ) ( sizeof( *pxAnswer ) + ( size_t ) ( pucByte - pucNewBuffer ) );
 

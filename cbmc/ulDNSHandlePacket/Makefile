@@ -5,13 +5,13 @@ ROOT = ../..
 # Defines file(s) to link to harness, MUST be a full path!
 # (We recommend $(ROOT)/os/... for defining these paths)
 # Each file is space seperated, and multiple can be defined
-LINK = $(ROOT)/source/FreeRTOS_DNS.c
+LINK = $(ROOT)/source/FreeRTOS_DNS.c $(ROOT)/source/FreeRTOS_DNS_Parser.c $(ROOT)/source/FreeRTOS_IP_Utils.c
 
 # Harness to utilize, omit the extension!
 H_ENTRY = ulDNSHandlePacket
 
 # Extra CBMC flags to be passed during CBMC analysis
-H_CBMCFLAGS = --nondet-static --unwind 1
+H_CBMCFLAGS = --nondet-static --unwind 1 --unwindset DNS_ParseDNSReply.0:3 --unwindset parseDNSAnswer.0:3 
 
 
 H_DEF =

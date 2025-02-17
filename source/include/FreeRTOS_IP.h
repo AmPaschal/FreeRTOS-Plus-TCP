@@ -243,8 +243,21 @@ typedef struct xIP_TIMER
 
 #endif /* ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN */
 
-#define FreeRTOS_ntohs( x )    FreeRTOS_htons( x )
-#define FreeRTOS_ntohl( x )    FreeRTOS_htonl( x )
+uint32_t undet_uint32() {
+    uint32_t res;
+
+    return res;
+}
+
+uint16_t undet_uint16()
+{
+    uint16_t val;
+
+    return val;
+}
+
+#define FreeRTOS_ntohs( x )    undet_uint16()
+#define FreeRTOS_ntohl( x )    undet_uint32()
 
 /* Some simple helper functions. */
 int32_t FreeRTOS_max_int32( int32_t a,

@@ -397,8 +397,10 @@ extern const BaseType_t xBufferAllocFixedSize;
 
 #define vSetField16( pxBase, xType, xField, usValue )                                                        \
     {                                                                                                        \
-        ( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 0 ] = ( uint8_t ) ( ( usValue ) >> 8 );    \
-        ( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 1 ] = ( uint8_t ) ( ( usValue ) & 0xffU ); \
+        uint8_t val;                                                                                   \
+        uint8_t val2; \
+        ( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 0 ] = val;    \
+        ( ( uint8_t * ) ( pxBase ) )[ offsetof( xType, xField ) + 1 ] = val2; \
     }
 
 #define vSetField32( pxBase, xType, xField, ulValue )                                                                  \

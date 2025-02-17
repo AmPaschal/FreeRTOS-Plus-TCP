@@ -1,0 +1,8 @@
+{
+    "cmake.ignoreCMakeListsMissing": true,
+    "files.associations": {
+        ".clang-tidy": "raw",
+        "__config": "cpp",
+        "*.inc": "cpp"
+    }
+}
