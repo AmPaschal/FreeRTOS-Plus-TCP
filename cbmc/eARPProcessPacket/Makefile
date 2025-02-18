@@ -11,10 +11,10 @@ LINK = $(ROOT)/source/FreeRTOS_ARP.c
 H_ENTRY = eARPProcessPacket
 
 # Extra CBMC flags to be passed during CBMC analysis
-H_CBMCFLAGS = --nondet-static --unwind 1
+H_CBMCFLAGS = --nondet-static --unwind 1 --unwindset memcmp.0:7 --unwindset FreeRTOS_OutputARPRequest.0:10 --unwindset FreeRTOS_OutputARPRequest.0:7 --unwindset xIsIPInARPCache.0:7 --unwindset vARPRefreshCacheEntry.0:7
 
 
-H_DEF =
+H_DEF = -DipconfigETHERNET_MINIMUM_PACKET_BYTES=0
 
 H_INC = -I$(ROOT) -I../include/ -I$(ROOT)/sys/include/  \
         -I$(ROOT)/test/FreeRTOS-Kernel/include \

@@ -17,21 +17,23 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 
     NetworkBufferDescriptor_t* buff = (NetworkBufferDescriptor_t*)malloc(sizeof(NetworkBufferDescriptor_t));
 
-    // Determine if we should increase the allocation size:
-
-    if (xRequestedSizeBytes < ipconfigETHERNET_MINIMUM_PACKET_BYTES) {
-
-        // Increase to new size:
-        
-        xRequestedSizeBytes = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
-    }
-
     // Determine if we should model the data:
 
     if (buff != NULL) {
 
+        // Determine if we should increase the allocation size:
+
+        size_t size = xRequestedSizeBytes;
+
+        if (xRequestedSizeBytes < ipconfigETHERNET_MINIMUM_PACKET_BYTES) {
+
+            // Increase to new size:
+            
+            size = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
+        }
+
         buff->xDataLength = xRequestedSizeBytes;
-        buff->pucEthernetBuffer = malloc(xRequestedSizeBytes);
+        buff->pucEthernetBuffer = malloc(size);
 
         __CPROVER_assume(buff->pucEthernetBuffer != NULL);
     }
@@ -58,15 +60,17 @@ void harness(void)
 
         // Determine if we are too low:
 
+        size_t size = pxARPWaitingNetworkBuffer->xDataLength;
+
         if (pxARPWaitingNetworkBuffer->xDataLength < ipconfigETHERNET_MINIMUM_PACKET_BYTES) {
-            pxARPWaitingNetworkBuffer->xDataLength = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
+            size = ipconfigETHERNET_MINIMUM_PACKET_BYTES;
         }
 
         // Size must at least be IPPacket_t
 
         __CPROVER_assume(pxARPWaitingNetworkBuffer->xDataLength >= sizeof(IPPacket_t));  // Potential vulnerability 
 
-        pxARPWaitingNetworkBuffer->pucEthernetBuffer = malloc(pxARPWaitingNetworkBuffer->xDataLength);
+        pxARPWaitingNetworkBuffer->pucEthernetBuffer = malloc(size);
 
         __CPROVER_assume(pxARPWaitingNetworkBuffer->pucEthernetBuffer != NULL);  // WIll NOT be NULL
     }
