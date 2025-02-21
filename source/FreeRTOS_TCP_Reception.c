@@ -63,7 +63,7 @@
  * the header. This function returns pdTRUE or pdFALSE depending on whether the
  * caller should continue to parse more header options or break the loop.
  */
-    static int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+    int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
                                                   size_t uxTotalLength,
                                                   FreeRTOS_Socket_t * const pxSocket,
                                                   BaseType_t xHasSYNFlag );
@@ -194,7 +194,7 @@
  *         negative value wherein the calling function should not process this packet any
  *         further and drop it.
  */
-    static int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
+    int32_t prvSingleStepTCPHeaderOptions( const uint8_t * const pucPtr,
                                                   size_t uxTotalLength,
                                                   FreeRTOS_Socket_t * const pxSocket,
                                                   BaseType_t xHasSYNFlag )
