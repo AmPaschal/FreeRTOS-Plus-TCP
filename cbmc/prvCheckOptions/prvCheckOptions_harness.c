@@ -56,6 +56,35 @@ uint32_t ulChar2u32( const uint8_t * pucPtr )
 }
 
 /**
+ * @brief Receive a SACK option.
+ *
+ * @param[in] pxWindow: Window in which the data is received.
+ * @param[in] ulFirst: Index of starting position of options.
+ * @param[in] ulLast: Index of end position of the options.
+ *
+ * @return returns the number of bytes which have been acked starting from
+ *         the head position.
+ */
+uint32_t ulTCPWindowTxSack( TCPWindow_t * pxWindow,
+    uint32_t ulFirst,
+    uint32_t ulLast )
+{
+    uint32_t ulAckCount;
+
+    return ulAckCount;
+}
+
+/**
+ * @brief Dummy socket send callback
+ * 
+ * Removes function pointer violation
+ * 
+ * @param xSocket 
+ * @param xLength 
+ */
+void sock_call( Socket_t xSocket, size_t xLength ) {}
+
+/**
  * @brief Starting point for formal analysis
  * 
  */
@@ -65,6 +94,14 @@ void harness(void)
     // Model socket:
 
     FreeRTOS_Socket_t pxSocket;
+
+    // Add dummy callback:
+
+    pxSocket.u.xTCP.pxHandleSent = sock_call;
+
+    // Allocate proper stream buffer:
+
+    pxSocket.u.xTCP.txStream = (StreamBuffer_t*)malloc(sizeof(StreamBuffer_t));
 
     // Model network buffer:
 

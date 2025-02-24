@@ -1,0 +1,7 @@
+{
+    "cmake.ignoreCMakeListsMissing": true,
+    "files.associations": {
+        "freertos_ip.h": "c",
+        "freertos_sockets.h": "c"
+    }
+}
