@@ -213,6 +213,15 @@ typedef struct xIP_TIMER
     TickType_t ulReloadTime;    /**< The value of reload time. */
 } IPTimer_t;
 
+uint16_t uint16_un() {
+    uint16_t val;
+    return val;
+}
+
+uint32_t uint32_un() {
+    uint32_t val;
+    return val;
+}
 
 /* Endian related definitions. */
 #if ( ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN )
@@ -220,20 +229,12 @@ typedef struct xIP_TIMER
 /* FreeRTOS_htons / FreeRTOS_htonl: some platforms might have built-in versions
  * using a single instruction so allow these versions to be overridden. */
     #ifndef FreeRTOS_htons
-        #define FreeRTOS_htons( usIn )    ( ( uint16_t ) ( ( ( usIn ) << 8U ) | ( ( usIn ) >> 8U ) ) )
+        #define FreeRTOS_htons( usIn )    uint16_un()
     #endif
 
     #ifndef FreeRTOS_htonl
-        #define FreeRTOS_htonl( ulIn )                             \
-    (                                                              \
-        ( uint32_t )                                               \
-        (                                                          \
-            ( ( ( ( uint32_t ) ( ulIn ) ) ) << 24 ) |              \
-            ( ( ( ( uint32_t ) ( ulIn ) ) & 0x0000ff00U ) << 8 ) | \
-            ( ( ( ( uint32_t ) ( ulIn ) ) & 0x00ff0000U ) >> 8 ) | \
-            ( ( ( ( uint32_t ) ( ulIn ) ) ) >> 24 )                \
-        )                                                          \
-    )
+        #define FreeRTOS_htonl( ulIn ) uint32_un()
+        
     #endif /* ifndef FreeRTOS_htonl */
 
 #else /* ipconfigBYTE_ORDER */
@@ -243,8 +244,8 @@ typedef struct xIP_TIMER
 
 #endif /* ipconfigBYTE_ORDER == pdFREERTOS_LITTLE_ENDIAN */
 
-#define FreeRTOS_ntohs( x )    FreeRTOS_htons( x )
-#define FreeRTOS_ntohl( x )    FreeRTOS_htonl( x )
+#define FreeRTOS_ntohs( x )    uint16_un()
+#define FreeRTOS_ntohl( x )    uint32_un()
 
 /* Some simple helper functions. */
 int32_t FreeRTOS_max_int32( int32_t a,
