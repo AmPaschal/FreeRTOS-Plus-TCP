@@ -11,7 +11,7 @@ LINK = $(ROOT)/source/FreeRTOS_TCP_Reception.c $(ROOT)/source/FreeRTOS_Stream_Bu
 H_ENTRY = prvCheckOptions
 
 # Extra CBMC flags to be passed during CBMC analysis
-H_CBMCFLAGS = --nondet-static --unwind 1 --unwindset prvCheckOptions.0:2 --unwindset prvSingleStepTCPHeaderOptions.0:2
+H_CBMCFLAGS = --nondet-static --unwind 1 --unwindset prvCheckOptions.0:3 --unwindset prvSingleStepTCPHeaderOptions.0:3
 
 
 H_DEF =
