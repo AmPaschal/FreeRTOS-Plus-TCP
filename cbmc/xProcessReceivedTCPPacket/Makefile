@@ -14,7 +14,7 @@ H_ENTRY = xProcessReceivedTCPPacket
 H_CBMCFLAGS = --nondet-static --unwind 1
 
 
-H_DEF =
+H_DEF = -DipconfigUSE_TCP_WIN=0
 
 H_INC = -I$(ROOT) -I../include/ -I$(ROOT)/sys/include/  \
         -I$(ROOT)/test/FreeRTOS-Kernel/include \

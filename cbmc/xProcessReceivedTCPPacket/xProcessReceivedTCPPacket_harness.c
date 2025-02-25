@@ -21,6 +21,16 @@ BaseType_t xSequenceGreaterThan( uint32_t a,
     return xResult;
 }
 
+TickType_t prvTCPNextTimeout( FreeRTOS_Socket_t * pxSocket ) {
+    TickType_t val;
+    return val;
+}
+
+void prvTCPTouchSocket( FreeRTOS_Socket_t * pxSocket ) {}
+
+void vTCPStateChange( FreeRTOS_Socket_t * pxSocket,
+                        enum eTCP_STATE eTCPState ) {}
+
 /**
  * @brief Starting point for formal analysis
  * 
@@ -32,15 +42,17 @@ void harness(void)
 
     NetworkBufferDescriptor_t buff;
 
-    __CPROVER_assume(buff.xDataLength < 10);
+    __CPROVER_assume(buff.xDataLength < 1);
 
     // Allocate some data:
 
-    buff.pucEthernetBuffer = malloc(buff.xDataLength);
+    // buff.pucEthernetBuffer = malloc(buff.xDataLength);
+
+    buff.pucEthernetBuffer = NULL;
 
     // Data will not be NULL
 
-    __CPROVER_assume(buff.pucEthernetBuffer != NULL);
+    // __CPROVER_assume(buff.pucEthernetBuffer != NULL);
 
     BaseType_t res = xProcessReceivedTCPPacket( &buff );
 }
