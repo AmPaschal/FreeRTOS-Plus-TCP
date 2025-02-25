@@ -434,6 +434,13 @@
                                         xOffset1 = ( BaseType_t ) ( pucByte - pucUDPPayloadBuffer );
                                         xOffset2 = ( BaseType_t ) ( ( ( uint8_t * ) pcRequestedName ) - pucUDPPayloadBuffer );
 
+                                        // Offsets MUST be positive
+
+                                        if (xOffset1 < 0 || xOffset2 < 0) {
+                                            // Can't be negative, return:
+                                            return 0;
+                                        }
+
                                         pxNetworkBuffer = pxNewBuffer;
                                         pucNewBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
 
@@ -461,9 +468,9 @@
                                 int64_t size = pxNetworkBuffer->xDataLength - ipUDP_PAYLOAD_OFFSET_IPv4 - xOffset1 - sizeof(LLMNRAnswer_t);
 
                                 int64_t psize = pxNetworkBuffer->xDataLength;
-                                int64_t tsize = ipUDP_PAYLOAD_OFFSET_IPv4 - xOffset1 - sizeof(LLMNRAnswer_t);
+                                int64_t tsize = ipUDP_PAYLOAD_OFFSET_IPv4 + xOffset1 + sizeof(LLMNRAnswer_t);
 
-                                if (pxNetworkBuffer->xDataLength < ipUDP_PAYLOAD_OFFSET_IPv4 + xOffset1 + sizeof(LLMNRAnswer_t))
+                                if (uxSourceBytesRemaining < sizeof(LLMNRAnswer_t))
                                 {
                                     return 0;
                                 }
@@ -477,8 +484,12 @@
                                     // vSetField16( pxDNSMessageHeader, DNSMessage_t, usAdditionalRRs, 0 );                 /* No additional info */
                                 #endif /* lint */
 
+                                // Determine if the name offsets are bad:
+
+                                uint64_t osize = (uint64_t)((uint64_t)pcRequestedName - (uint64_t)pucNewBuffer);
+
                                 pxAnswer->ucNameCode = dnsNAME_IS_OFFSET;
-                                pxAnswer->ucNameOffset = ( uint8_t ) ( pcRequestedName - ( char * ) pucNewBuffer );
+                                pxAnswer->ucNameOffset = (uint8_t)(pcRequestedName - (char *)pucNewBuffer);
 
                                 #ifndef _lint
                                     // vSetField16( pxAnswer, LLMNRAnswer_t, usType, dnsTYPE_A_HOST ); /* Type A: host */
