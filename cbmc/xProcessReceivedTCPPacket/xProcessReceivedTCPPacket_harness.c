@@ -6,30 +6,57 @@
 #include "FreeRTOS.h"
 #include "FreeRTOS_IP.h"
 
-BaseType_t xSequenceLessThan( uint32_t a, uint32_t b )
-{
-    BaseType_t xResult;
+// BaseType_t xSequenceLessThan( uint32_t a, uint32_t b )
+// {
+//     BaseType_t xResult;
 
-    return xResult;
+//     return xResult;
+// }
+
+// BaseType_t xSequenceGreaterThan( uint32_t a,
+//     uint32_t b )
+// {
+//     BaseType_t xResult;
+
+//     return xResult;
+// }
+
+// TickType_t prvTCPNextTimeout( FreeRTOS_Socket_t * pxSocket ) {
+//     TickType_t val;
+//     return val;
+// }
+
+FreeRTOS_Socket_t * pxTCPSocketLookup( uint32_t ulLocalIP,
+                                    UBaseType_t uxLocalPort,
+                                    uint32_t ulRemoteIP,
+                                    UBaseType_t uxRemotePort ) {
+    FreeRTOS_Socket_t *socket = malloc(sizeof(FreeRTOS_Socket_t));
+
+    FreeRTOS_Socket_t *peerSocket = malloc(sizeof(FreeRTOS_Socket_t));
+
+    __CPROVER_assume(peerSocket != NULL);
+
+    if (socket != NULL) {
+        socket->u.xTCP.pxPeerSocket = peerSocket;
+    }
+
+    return socket;
 }
 
-BaseType_t xSequenceGreaterThan( uint32_t a,
-    uint32_t b )
-{
-    BaseType_t xResult;
+FreeRTOS_Socket_t * prvHandleListen( FreeRTOS_Socket_t * pxSocket,
+    NetworkBufferDescriptor_t * pxNetworkBuffer ) {
+        FreeRTOS_Socket_t *socket = malloc(sizeof(FreeRTOS_Socket_t));
 
-    return xResult;
-}
+        FreeRTOS_Socket_t *peerSocket = malloc(sizeof(FreeRTOS_Socket_t));
 
-TickType_t prvTCPNextTimeout( FreeRTOS_Socket_t * pxSocket ) {
-    TickType_t val;
-    return val;
-}
+        __CPROVER_assume(peerSocket != NULL);
 
-void prvTCPTouchSocket( FreeRTOS_Socket_t * pxSocket ) {}
+        if (socket != NULL) {
+            socket->u.xTCP.pxPeerSocket = peerSocket;
+        }
 
-void vTCPStateChange( FreeRTOS_Socket_t * pxSocket,
-                        enum eTCP_STATE eTCPState ) {}
+        return socket;
+    }
 
 /**
  * @brief Starting point for formal analysis
@@ -42,13 +69,16 @@ void harness(void)
 
     NetworkBufferDescriptor_t buff;
 
-    __CPROVER_assume(buff.xDataLength < 1);
+    size_t dataLength;
+
+    __CPROVER_assume(dataLength > ipSIZE_OF_ETH_HEADER + xIPHeaderSize( pxNetworkBuffer ) + sizeof(ProtocolHeaders_t));
 
     // Allocate some data:
 
-    // buff.pucEthernetBuffer = malloc(buff.xDataLength);
+    buff.pucEthernetBuffer = malloc(dataLength);
+    __CPROVER_assume(buff.pucEthernetBuffer != NULL);
 
-    buff.pucEthernetBuffer = NULL;
+    buff.xDataLength = dataLength;
 
     // Data will not be NULL
 
