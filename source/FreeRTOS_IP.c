@@ -166,7 +166,7 @@ static void prvProcessEthernetPacket( NetworkBufferDescriptor_t * const pxNetwor
 /*
  * Process incoming IP packets.
  */
-static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacket,
+eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacket,
                                                     NetworkBufferDescriptor_t * const pxNetworkBuffer );
 
 /*
@@ -1944,7 +1944,7 @@ static eFrameProcessingResult_t prvProcessUDPPacket( NetworkBufferDescriptor_t *
  *
  * @return An enum to show whether the packet should be released/kept/processed etc.
  */
-static eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacket,
+eFrameProcessingResult_t prvProcessIPPacket( const IPPacket_t * pxIPPacket,
                                                     NetworkBufferDescriptor_t * const pxNetworkBuffer )
 {
     eFrameProcessingResult_t eReturn;
