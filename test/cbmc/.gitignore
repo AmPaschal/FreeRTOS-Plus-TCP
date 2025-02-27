@@ -1,5 +1,7 @@
 cbmc.txt
+cbmc.xml
 property.xml
 coverage.xml
 *.goto
 **/html/*
+**/json/*
