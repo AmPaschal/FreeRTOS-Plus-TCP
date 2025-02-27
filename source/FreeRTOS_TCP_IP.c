@@ -545,6 +545,28 @@
             }
         }
 
+        if( ( eTCPState == eCLOSE_WAIT ) && ( pxSocket->u.xTCP.bits.bReuseSocket == pdTRUE_UNSIGNED ) )
+        {
+            switch( xPreviousState )
+            {
+                case eSYN_FIRST:    /* 3 (server) Just created, must ACK the SYN request */
+                case eSYN_RECEIVED: /* 4 (server) waiting for a confirming connection request */
+                    FreeRTOS_printf( ( "Restoring a reuse socket port %u\n", pxSocket->usLocalPort ) );
+
+                    /* Go back into listening mode. Set the TCP status to 'eCLOSED',
+                     * otherwise FreeRTOS_listen() will refuse the action. */
+                    pxSocket->u.xTCP.eTCPState = eCLOSED;
+					/* vSocketListenNextTime() makes sure that FreeRTOS_listen() will be called
+					 * before the IP-task handles any new message. */
+					vSocketListenNextTime( pxSocket );
+                    break;
+
+                default:
+                    /* Nothing to do. */
+                    break;
+            }
+        }
+
         /* Touch the alive timers because moving to another state. */
         prvTCPTouchSocket( pxSocket );
 

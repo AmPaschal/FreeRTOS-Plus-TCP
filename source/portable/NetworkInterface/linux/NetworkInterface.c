@@ -42,6 +42,7 @@
 #include <ctype.h>
 #include <signal.h>
 #include <pcap.h>
+#include "time.h"
 
 /* ========================= FreeRTOS+TCP includes ========================== */
 #include "FreeRTOS_IP.h"
@@ -528,6 +529,14 @@ static int prvSetDeviceModes()
             break;
         }
 
+        ret = pcap_set_immediate_mode(pxOpenedInterfaceHandle, 10);
+
+        if( ( ret != 0 ) && ( ret != PCAP_ERROR_ACTIVATED ) )
+        {
+            FreeRTOS_printf( ( "coult not set immediate mode\n" ) );
+            break;
+        }
+
         ret = pdPASS;
     } while( 0 );
 
@@ -602,23 +611,29 @@ static int prvOpenSelectedNetworkInterface( pcap_if_t * pxAllNetworkInterfaces )
     int32_t x;
     int ret = pdFAIL;
 
-    /* Walk the list of devices until the selected device is located. */
-    pxInterface = pxAllNetworkInterfaces;
+    // /* Walk the list of devices until the selected device is located. */
+    // pxInterface = pxAllNetworkInterfaces;
 
-    for( x = 0L; x < ( xConfigNetworkInterfaceToUse - 1L ); x++ )
-    {
-        pxInterface = pxInterface->next;
+    // for( x = 0L; x < ( xConfigNetworkInterfaceToUse - 1L ); x++ )
+    // {
+    //     pxInterface = pxInterface->next;
+    // }
+
+    const char *interface_name = getenv("TAP_INTERFACE_NAME");
+
+    if (interface_name == NULL) {
+        interface_name = pxInterface->name;
     }
 
     /* Open the selected interface. */
-    if( prvOpenInterface( pxInterface->name ) == pdPASS )
+    if( prvOpenInterface( interface_name ) == pdPASS )
     {
-        FreeRTOS_debug_printf( ( "Successfully opened interface number %d.\n", x + 1 ) );
+        FreeRTOS_debug_printf( ( "Successfully opened interface %s.\n", interface_name) );
         ret = pdPASS;
     }
     else
     {
-        FreeRTOS_printf( ( "Failed to open interface number %d.\n", x + 1 ) );
+        FreeRTOS_printf( ( "Failed to open interface number %s.\n", interface_name ) );
     }
 
     return ret;
@@ -764,6 +779,18 @@ static void pcap_callback( unsigned char * user,
                            const struct pcap_pkthdr * pkt_header,
                            const u_char * pkt_data )
 {
+    // FreeRTOS_debug_printf( ( "Receiving < ===========  network callback user: %s len: %d caplen: %d timestamp: %d.%d\n",
+    //                          user,
+    //                          pkt_header->len,
+    //                          pkt_header->caplen,
+    //                          pkt_header->ts.tv_sec,
+    //                          pkt_header->ts.tv_usec ) );
+    // print_hex( pkt_data, pkt_header->len );
+
+    // struct timeval tv;
+    // gettimeofday(&tv, NULL);
+    // printf("IP packet received at timestamp %ld.%ld\n", tv.tv_sec, tv.tv_usec);
+
     FreeRTOS_debug_printf( ( "Receiving < ===========  network callback user: %s len: %d caplen: %d\n",
                              user,
                              pkt_header->len,
