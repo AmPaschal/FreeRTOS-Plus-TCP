@@ -32,53 +32,131 @@
 
 /* FreeRTOS+TCP includes. */
 #include "FreeRTOS_IP.h"
+#include "FreeRTOS_ARP.h"
 #include "FreeRTOS_IP_Private.h"
 #include "FreeRTOS_TCP_IP.h"
+#include "FreeRTOS_TCP_Transmission.h"
 
-#include "../../utility/memory_assignments.c"
-
+/* CBMC includes */
 #include "cbmc.h"
 
-/* This proof assumes that pxDuplicateNetworkBufferWithDescriptor is implemented correctly. */
-void publicTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
-                            NetworkBufferDescriptor_t * pxNetworkBuffer,
-                            uint32_t ulLen,
-                            BaseType_t xReleaseAfterSend );
+/* prvTCPReturnPacket_IPV6 is proven separately. */
+void prvTCPReturnPacket_IPV6( FreeRTOS_Socket_t * pxSocket,
+                              NetworkBufferDescriptor_t * pxDescriptor,
+                              uint32_t ulLen,
+                              BaseType_t xReleaseAfterSend )
+{
+    __CPROVER_assert( pxSocket != NULL, "pxSocket cannot be NULL" );
+    __CPROVER_assert( pxDescriptor != NULL, "pxDescriptor cannot be NULL" );
+}
+
+/* Memory assignment for FreeRTOS_Socket_t */
+FreeRTOS_Socket_t * ensure_FreeRTOS_Socket_t_is_allocated()
+{
+    size_t buf_size; /* Give buffer_size an unconstrained value */
+    FreeRTOS_Socket_t * pxSocket = safeMalloc( sizeof( FreeRTOS_Socket_t ) + sizeof( IPTCPSocket_t ) );
+
+    __CPROVER_assume( pxSocket != NULL );
+    pxSocket->u.xTCP.rxStream = safeMalloc( sizeof( StreamBuffer_t ) );
+    pxSocket->u.xTCP.txStream = safeMalloc( sizeof( StreamBuffer_t ) );
+    pxSocket->u.xTCP.pxPeerSocket = safeMalloc( sizeof( FreeRTOS_Socket_t ) );
+    pxSocket->pxEndPoint = safeMalloc( sizeof( NetworkEndPoint_t ) );
+    pxSocket->u.xTCP.pxAckMessage = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
+
+    if( pxSocket->u.xTCP.pxAckMessage != NULL )
+    {
+        __CPROVER_assume( ( buf_size > ( ipSIZE_OF_ETH_HEADER + ipSIZE_OF_IPv6_HEADER + sizeof( TCPHeader_t ) ) ) && ( buf_size < ipconfigNETWORK_MTU ) );
+        pxSocket->u.xTCP.pxAckMessage->pucEthernetBuffer = safeMalloc( buf_size );
+        __CPROVER_assume( pxSocket->u.xTCP.pxAckMessage->pucEthernetBuffer != NULL );
+    }
+
+    return pxSocket;
+}
+
+/*
+ * This function is implemented by a third party.
+ * After looking through a couple of samples in the demos folder, it seems
+ * like the only shared contract is that you want to add the if statement
+ * for releasing the buffer to the end. Apart from that, it is up to the vendor,
+ * how to write this code out to the network.
+ */
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
+{
+    __CPROVER_assert( pxDescriptor != NULL, "The network interface cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer descriptor cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "The ethernet buffer cannot be NULL." );
+
+    if( xReleaseAfterSend != pdFALSE )
+    {
+        vReleaseNetworkBufferAndDescriptor( pxNetworkBuffer );
+    }
+
+    return 0;
+}
+
+/* Abstraction of this functions creates an endpoint and assign it to network interface
+ * endpoint, real endpoint doesn't matter in this test. */
+void prvTCPReturn_SetEndPoint( const FreeRTOS_Socket_t * pxSocket,
+                               NetworkBufferDescriptor_t * pxNetworkBuffer,
+                               size_t uxIPHeaderSize )
+{
+    NetworkEndPoint_t * pxEndPoint = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+
+    __CPROVER_assert( pxNetworkBuffer != NULL, "The network interface cannot be NULL." );
+
+    __CPROVER_assume( pxEndPoint != NULL );
+
+    /* Add an interface */
+    pxEndPoint->pxNetworkInterface = ( NetworkInterface_t * ) safeMalloc( sizeof( NetworkInterface_t ) );
+    __CPROVER_assume( pxEndPoint->pxNetworkInterface != NULL );
+
+    pxEndPoint->pxNetworkInterface->pfOutput = NetworkInterfaceOutputFunction_Stub;
+
+    pxNetworkBuffer->pxEndPoint = pxEndPoint;
+}
 
 /* Abstraction of pxDuplicateNetworkBufferWithDescriptor*/
 NetworkBufferDescriptor_t * pxDuplicateNetworkBufferWithDescriptor( const NetworkBufferDescriptor_t * const pxNetworkBuffer,
                                                                     size_t xNewLength )
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
+    NetworkBufferDescriptor_t * pxLocalNetworkBuffer;
+    EthernetHeader_t * pxHeader;
 
-    if( ensure_memory_is_valid( pxNetworkBuffer, sizeof( *pxNetworkBuffer ) ) )
+    pxLocalNetworkBuffer = pxGetNetworkBufferWithDescriptor( xNewLength, 0 );
+
+    if( pxLocalNetworkBuffer != NULL )
     {
-        pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( TCPPacket_t ) );
-        __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer );
+        /* In this test case, we only focus on IPv4. */
+        pxHeader = ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
+        __CPROVER_assume( pxHeader->usFrameType != ipIPv6_FRAME_TYPE );
+
+        /* Add an end point to the network buffer present. Its assumed that the
+         * network interface layer correctly assigns the end point to the generated buffer. */
+        pxLocalNetworkBuffer->pxEndPoint = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+        __CPROVER_assume( pxLocalNetworkBuffer->pxEndPoint != NULL );
+        pxLocalNetworkBuffer->pxEndPoint->pxNext = NULL;
+
+        /* Add an interface */
+        pxLocalNetworkBuffer->pxEndPoint->pxNetworkInterface = ( NetworkInterface_t * ) safeMalloc( sizeof( NetworkInterface_t ) );
+        __CPROVER_assume( pxLocalNetworkBuffer->pxEndPoint->pxNetworkInterface != NULL );
+
+        pxLocalNetworkBuffer->pxEndPoint->pxNetworkInterface->pfOutput = NetworkInterfaceOutputFunction_Stub;
     }
 
-    return pxNetworkBuffer;
-}
-
-BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * pxDescriptor,
-                                    BaseType_t xReleaseAfterSend )
-{
-    BaseType_t xReturn;
-
-    __CPROVER_assert( pxDescriptor != NULL, "The descriptor cannot be NULL" );
-    __CPROVER_assert( pxDescriptor->pucEthernetBuffer != NULL, "The ethernet buffer cannot be NULL" );
-
-    return xReturn;
+    return pxLocalNetworkBuffer;
 }
 
 uint16_t usGenerateProtocolChecksum( const uint8_t * const pucEthernetBuffer,
                                      size_t uxBufferLength,
                                      BaseType_t xOutgoingPacket )
 {
+    uint16_t usReturn;
+
     __CPROVER_assert( pucEthernetBuffer != NULL, "The ethernet buffer cannot be NULL" );
     __CPROVER_assert( __CPROVER_r_ok( pucEthernetBuffer, uxBufferLength ), "pucEthernetBuffer should be readable." );
 
-    uint16_t usReturn;
     return usReturn;
 }
 
@@ -86,30 +164,87 @@ uint16_t usGenerateChecksum( uint16_t usSum,
                              const uint8_t * pucNextData,
                              size_t uxByteCount )
 {
+    uint16_t usReturn;
+
     __CPROVER_assert( pucNextData != NULL, "The next data pointer cannot be NULL" );
     __CPROVER_assert( __CPROVER_r_ok( pucNextData, uxByteCount ), "The pucNextData should be readable." );
 
-    uint16_t usReturn;
     return usReturn;
+}
+
+/* This function has been tested separately. Therefore, we assume that the implementation is correct. */
+eResolutionLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
+                                             MACAddress_t * const pxMACAddress,
+                                             struct xNetworkEndPoint ** ppxEndPoint )
+{
+    /* Assume random ARP lookup result. */
+    eResolutionLookupResult_t eReturn;
+
+    /* Make sure NULL pointers are not passed as arguments. */
+    __CPROVER_assert( pulIPAddress != NULL, "The pulIPAddress cannot be NULL" );
+    __CPROVER_assert( pxMACAddress != NULL, "The pxMACAddress cannot be NULL" );
+
+    if( eReturn == eResolutionCacheHit )
+    {
+        /* If its a cache hit, update ppxEndPoint with a valid endpoint. */
+        struct xNetworkEndPoint * pxEndPoint = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+        __CPROVER_assume( pxEndPoint != NULL );
+        pxEndPoint->pxNetworkInterface = ( NetworkInterface_t * ) safeMalloc( sizeof( NetworkInterface_t ) );
+        __CPROVER_assume( pxEndPoint->pxNetworkInterface != NULL );
+        pxEndPoint->pxNetworkInterface->pfOutput = NetworkInterfaceOutputFunction_Stub;
+        *ppxEndPoint = pxEndPoint;
+    }
+    else
+    {
+        /* In case of miss there isn't a matching endpoint available. */
+        *ppxEndPoint = NULL;
+    }
+
+    return eReturn;
 }
 
 void harness()
 {
-    FreeRTOS_Socket_t * pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
-    NetworkBufferDescriptor_t * pxNetworkBuffer = ensure_FreeRTOS_NetworkBuffer_is_allocated();
+    FreeRTOS_Socket_t * pxSocket;
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+    BaseType_t xReleaseAfterSend;
+    uint32_t ulLen;
+    EthernetHeader_t * pxHeader;
+
+    pxSocket = ensure_FreeRTOS_Socket_t_is_allocated();
+
+    if( pxSocket != NULL )
+    {
+        /* In this test case, we only focus on IPv4. */
+        __CPROVER_assume( pxSocket->bits.bIsIPv6 == pdFALSE_UNSIGNED );
+    }
+
+    __CPROVER_assume( ( ulLen >= sizeof( TCPPacket_t ) ) && ( ulLen < ipconfigNETWORK_MTU - ipSIZE_OF_ETH_HEADER ) );
+    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( ulLen + ipSIZE_OF_ETH_HEADER, 0 );
 
     /* The code does not expect both of these to be equal to NULL at the same time. */
     __CPROVER_assume( pxSocket != NULL || pxNetworkBuffer != NULL );
-
-    uint32_t ulLen;
+    /* ucPeerWinScaleFactor is limited in range [0,14]. */
+    __CPROVER_assume( pxSocket->u.xTCP.ucMyWinScaleFactor <= tcpTCP_OPT_WSOPT_MAXIMUM_VALUE );
 
     /* If network buffer is properly created. */
-    if( ensure_memory_is_valid( pxNetworkBuffer, sizeof( *pxNetworkBuffer ) ) )
+    if( pxNetworkBuffer != NULL )
     {
-        /* Assume that the length is proper. */
-        __CPROVER_assume( ( ulLen >= sizeof( TCPPacket_t ) ) && ( ulLen < ipconfigNETWORK_MTU ) );
-        pxNetworkBuffer->pucEthernetBuffer = safeMalloc( ulLen + ipSIZE_OF_ETH_HEADER );
-        __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer );
+        /* In this test case, we only focus on IPv4. */
+        pxHeader = ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
+        __CPROVER_assume( pxHeader->usFrameType != ipIPv6_FRAME_TYPE );
+
+        /* Add an end point to the network buffer present. Its assumed that the
+         * network interface layer correctly assigns the end point to the generated buffer. */
+        pxNetworkBuffer->pxEndPoint = ( NetworkEndPoint_t * ) safeMalloc( sizeof( NetworkEndPoint_t ) );
+
+        if( pxNetworkBuffer->pxEndPoint != NULL )
+        {
+            /* Add an interface */
+            pxNetworkBuffer->pxEndPoint->pxNetworkInterface = ( NetworkInterface_t * ) safeMalloc( sizeof( NetworkInterface_t ) );
+            __CPROVER_assume( pxNetworkBuffer->pxEndPoint->pxNetworkInterface != NULL );
+            pxNetworkBuffer->pxEndPoint->pxNetworkInterface->pfOutput = NetworkInterfaceOutputFunction_Stub;
+        }
     }
     /* If not. */
     else
@@ -121,7 +256,5 @@ void harness()
                           ( ulLen <= ipSIZE_OF_IPv4_HEADER + ipSIZE_OF_TCP_HEADER + 40 /* Maximum option bytes. */ ) );
     }
 
-    BaseType_t xReleaseAfterSend;
-
-    publicTCPReturnPacket( pxSocket, pxNetworkBuffer, ulLen, xReleaseAfterSend );
+    prvTCPReturnPacket( pxSocket, pxNetworkBuffer, ulLen, xReleaseAfterSend );
 }

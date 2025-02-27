@@ -2,12 +2,17 @@
   "ENTRY": "vProcessGeneratedUDPPacket",
   "CBMCFLAGS":
   [
+    "--unwind 1",
+    "--unwindset FreeRTOS_InterfaceEndPointOnNetMask.0:3",
+    "--nondet-static"
   ],
   "OBJS":
   [
     "$(ENTRY)_harness.goto",
     "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_IP.goto",
-    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_UDP_IP.goto"
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_Routing.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_UDP_IP.goto",
+    "$(FREERTOS_PLUS_TCP)/source/FreeRTOS_UDP_IPv4.goto"
   ],
   "INSTFLAGS":
   [

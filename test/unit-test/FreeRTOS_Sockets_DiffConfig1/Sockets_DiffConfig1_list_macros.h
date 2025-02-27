@@ -37,7 +37,7 @@ void listSET_LIST_ITEM_OWNER( ListItem_t * pxListItem,
                               void * owner );
 
 #undef listGET_HEAD_ENTRY
-ListItem_t * listGET_HEAD_ENTRY( List_t * pxList );
+ListItem_t * listGET_HEAD_ENTRY( const List_t * pxList );
 
 #undef listGET_END_MARKER
 ListItem_t * listGET_END_MARKER( List_t * pxList );
@@ -77,11 +77,5 @@ void * listGET_LIST_ITEM_OWNER( const ListItem_t * listItem );
 
 #undef listLIST_IS_INITIALISED
 BaseType_t listLIST_IS_INITIALISED( List_t * pxList );
-
-/*
- * Returns pdTRUE if the IP task has been created and is initialised.  Otherwise
- * returns pdFALSE.
- */
-BaseType_t xIPIsNetworkTaskReady( void );
 
 #endif /* ifndef LIST_MACRO_H */
