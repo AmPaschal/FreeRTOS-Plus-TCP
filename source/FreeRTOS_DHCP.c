@@ -1247,7 +1247,7 @@
  *
  * @return pdPASS: if DHCP options are received correctly; pdFAIL: Otherwise.
  */
-    static BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
+    BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
                                              NetworkEndPoint_t * pxEndPoint )
     {
         uint8_t * pucUDPPayload;
