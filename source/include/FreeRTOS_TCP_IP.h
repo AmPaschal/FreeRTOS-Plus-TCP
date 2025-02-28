@@ -34,7 +34,21 @@
 #endif
 /* *INDENT-ON* */
 
+/**
+ * @brief Process the received TCP packet.
+ *
+ */
 BaseType_t xProcessReceivedTCPPacket( NetworkBufferDescriptor_t * pxDescriptor );
+
+/**
+ * @brief Process the received TCP packet.
+ */
+BaseType_t xProcessReceivedTCPPacket_IPV4( NetworkBufferDescriptor_t * pxDescriptor );
+
+/**
+ * @brief Process the received TCP packet.
+ */
+BaseType_t xProcessReceivedTCPPacket_IPV6( NetworkBufferDescriptor_t * pxDescriptor );
 
 typedef enum eTCP_STATE
 {
@@ -59,7 +73,7 @@ typedef enum eTCP_STATE
     eLAST_ACK,     /*10 (server + client) waiting for an acknowledgement of the connection termination request
                     * previously sent to the remote TCP
                     * (which includes an acknowledgement of its connection termination request). */
-    eTIME_WAIT,    /*11 (either server or client) waiting for enough time to pass to be sure the remote TCP received the
+    eTIME_WAIT     /*11 (either server or client) waiting for enough time to pass to be sure the remote TCP received the
                     * acknowledgement of its connection termination request. [According to RFC 793 a connection can
                     * stay in TIME-WAIT for a maximum of four minutes known as a MSL (maximum segment lifetime).] */
 } eIPTCPState_t;
@@ -82,25 +96,26 @@ typedef enum eTCP_STATE
 /*
  * A few values of the TCP options:
  */
-#define tcpTCP_OPT_END               0U                  /**< End of TCP options list. */
-#define tcpTCP_OPT_NOOP              1U                  /**< "No-operation" TCP option. */
-#define tcpTCP_OPT_MSS               2U                  /**< Maximum segment size TCP option. */
-#define tcpTCP_OPT_WSOPT             3U                  /**< TCP Window Scale Option (3-byte long). */
-#define tcpTCP_OPT_SACK_P            4U                  /**< Advertise that SACK is permitted. */
-#define tcpTCP_OPT_SACK_A            5U                  /**< SACK option with first/last. */
-#define tcpTCP_OPT_TIMESTAMP         8U                  /**< Time-stamp option. */
+#define tcpTCP_OPT_END                    0U             /**< End of TCP options list. */
+#define tcpTCP_OPT_NOOP                   1U             /**< "No-operation" TCP option. */
+#define tcpTCP_OPT_MSS                    2U             /**< Maximum segment size TCP option. */
+#define tcpTCP_OPT_WSOPT                  3U             /**< TCP Window Scale Option (3-byte long). */
+#define tcpTCP_OPT_SACK_P                 4U             /**< Advertise that SACK is permitted. */
+#define tcpTCP_OPT_SACK_A                 5U             /**< SACK option with first/last. */
+#define tcpTCP_OPT_TIMESTAMP              8U             /**< Time-stamp option. */
 
 
-#define tcpTCP_OPT_MSS_LEN           4U                  /**< Length of TCP MSS option. */
-#define tcpTCP_OPT_WSOPT_LEN         3U                  /**< Length of TCP WSOPT option. */
+#define tcpTCP_OPT_MSS_LEN                4U             /**< Length of TCP MSS option. */
+#define tcpTCP_OPT_WSOPT_LEN              3U             /**< Length of TCP WSOPT option. */
+#define tcpTCP_OPT_WSOPT_MAXIMUM_VALUE    ( 14U )        /**< Maximum value of TCP WSOPT option. */
 
-#define tcpTCP_OPT_TIMESTAMP_LEN     10                  /**< fixed length of the time-stamp option. */
+#define tcpTCP_OPT_TIMESTAMP_LEN          10             /**< fixed length of the time-stamp option. */
 
 /** @brief
  * Minimum segment length as outlined by RFC 791 section 3.1.
  * Minimum segment length ( 536 ) = Minimum MTU ( 576 ) - IP Header ( 20 ) - TCP Header ( 20 ).
  */
-#define tcpMINIMUM_SEGMENT_LENGTH    536U
+#define tcpMINIMUM_SEGMENT_LENGTH         536U
 
 /** @brief
  * The macro tcpNOW_CONNECTED() is use to determine if the connection makes a
@@ -161,9 +176,19 @@ typedef enum eTCP_STATE
     #define tcpMAXIMUM_TCP_WAKEUP_TIME_MS    20000U
 #endif
 
-/* Two macro's that were introduced to work with both IPv4 and IPv6. */
-#define xIPHeaderSize( pxNetworkBuffer )    ( ipSIZE_OF_IPv4_HEADER )          /**< Size of IP Header. */
-#define uxIPHeaderSizeSocket( pxSocket )    ( ipSIZE_OF_IPv4_HEADER )          /**< Size of IP Header socket. */
+struct xSOCKET;
+
+/*
+ * For anti-hang protection and TCP keep-alive messages.  Called in two places:
+ * after receiving a packet and after a state change.  The socket's alive timer
+ * may be reset.
+ */
+void prvTCPTouchSocket( struct xSOCKET * pxSocket );
+
+/*
+ * Calculate when this socket needs to be checked to do (re-)transmissions.
+ */
+TickType_t prvTCPNextTimeout( struct xSOCKET * pxSocket );
 
 
 /* *INDENT-OFF* */

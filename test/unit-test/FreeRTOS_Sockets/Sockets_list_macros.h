@@ -37,7 +37,7 @@ void listSET_LIST_ITEM_OWNER( ListItem_t * pxListItem,
                               void * owner );
 
 #undef listGET_HEAD_ENTRY
-ListItem_t * listGET_HEAD_ENTRY( List_t * pxList );
+ListItem_t * listGET_HEAD_ENTRY( const List_t * pxList );
 
 #undef listGET_END_MARKER
 ListItem_t * listGET_END_MARKER( List_t * pxList );
@@ -67,7 +67,7 @@ void listSET_LIST_ITEM_VALUE( ListItem_t * listItem,
 List_t * listLIST_ITEM_CONTAINER( const ListItem_t * listItem );
 
 #undef listCURRENT_LIST_LENGTH
-UBaseType_t listCURRENT_LIST_LENGTH( List_t * list );
+UBaseType_t listCURRENT_LIST_LENGTH( const List_t * list );
 
 #undef listGET_ITEM_VALUE_OF_HEAD_ENTRY
 TickType_t listGET_ITEM_VALUE_OF_HEAD_ENTRY( List_t * list );

@@ -24,15 +24,13 @@
 * Signature of function under test
 ****************************************************************/
 
-void prvReadSackOption( const uint8_t * const pucPtr,
-                        size_t uxIndex,
-                        FreeRTOS_Socket_t * const pxSocket );
+void __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvReadSackOption( const uint8_t * const pucPtr,
+                                                                      size_t uxIndex,
+                                                                      FreeRTOS_Socket_t * const pxSocket );
 
 /****************************************************************
 * Proof of prvReadSackOption function contract
 ****************************************************************/
-
-
 
 void harness()
 {
@@ -87,7 +85,7 @@ void harness()
     /* Preconditions */
 
     /* CBMC model of pointers limits the size of the buffer */
-    __CPROVER_assume( buffer_size < CBMC_MAX_OBJECT_SIZE );
+    __CPROVER_assume( buffer_size < ipconfigNETWORK_MTU );
 
     /* Both preconditions are required to avoid integer overflow in the */
     /* pointer offset of the pointer pucPtr + uxIndex + 8 */
@@ -97,8 +95,10 @@ void harness()
     /* Assuming quite a bit more about the initialization of pxSocket */
     __CPROVER_assume( pucPtr != NULL );
     __CPROVER_assume( pxSocket != NULL );
+    /* lSRTT is guaranteed to be always greater than or equal to minimum value. */
+    __CPROVER_assume( pxSocket->u.xTCP.xTCPWindow.lSRTT >= ipconfigTCP_SRTT_MINIMUM_VALUE_MS );
 
-    prvReadSackOption( pucPtr, uxIndex, pxSocket );
+    __CPROVER_file_local_FreeRTOS_TCP_Reception_c_prvReadSackOption( pucPtr, uxIndex, pxSocket );
 
     /* No postconditions required */
 }

@@ -9,12 +9,21 @@
 #include "FreeRTOS_UDP_IP.h"
 #include "FreeRTOS_TCP_IP.h"
 
+/* CBMC includes. */
+#include "cbmc.h"
+
 /*This proof assumes that pxUDPSocketLookup is implemented correctly. */
 
 /* This proof was done before. Hence we assume it to be correct here. */
 void vARPRefreshCacheEntry( const MACAddress_t * pxMACAddress,
                             const uint32_t ulIPAddress )
 {
+}
+
+void vARPRefreshCacheEntryAge( const MACAddress_t * pxMACAddress,
+                               const uint32_t ulIPAddress )
+{
+    __CPROVER_assert( pxMACAddress != NULL, "pxMACAddress cannot be NULL" );
 }
 
 /* This proof was done before. Hence we assume it to be correct here. */
@@ -25,19 +34,47 @@ BaseType_t xIsDHCPSocket( Socket_t xSocket )
 /* This proof was done before. Hence we assume it to be correct here. */
 uint32_t ulDNSHandlePacket( NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
+    /* ulDNSHandlePacket always returns pdFAIL. */
+    return pdFAIL;
 }
 
-/* Implementation of safe malloc */
-void * safeMalloc( size_t xWantedSize )
+/* This proof was done before. Hence we assume it to be correct here. */
+uint32_t ulNBNSHandlePacket( NetworkBufferDescriptor_t * pxNetworkBuffer )
 {
-    if( xWantedSize == 0 )
-    {
-        return NULL;
-    }
+    /* ulNBNSHandlePacket always returns pdFAIL. */
+    return pdFAIL;
+}
 
-    uint8_t byte;
+/* This proof was done before. Hence we assume it to be correct here. */
+BaseType_t xCheckRequiresARPResolution( NetworkBufferDescriptor_t * pxNetworkBuffer )
+{
+    BaseType_t xReturn;
 
-    return byte ? malloc( xWantedSize ) : NULL;
+    __CPROVER_assume( ( xReturn == pdTRUE ) || ( xReturn == pdFALSE ) );
+
+    return xReturn;
+}
+
+/* Abstraction of xSendDHCPEvent */
+BaseType_t xSendDHCPEvent( struct xNetworkEndPoint * pxEndPoint )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assume( ( xReturn == pdTRUE ) || ( xReturn == pdFALSE ) );
+
+    return xReturn;
+}
+
+/* This proof was done before. Hence we assume it to be correct here. */
+BaseType_t xProcessReceivedUDPPacket_IPv6( NetworkBufferDescriptor_t * pxNetworkBuffer,
+                                           uint16_t usPort,
+                                           BaseType_t * pxIsWaitingForARPResolution )
+{
+    BaseType_t xReturn;
+
+    __CPROVER_assume( ( xReturn == pdTRUE ) || ( xReturn == pdFALSE ) );
+
+    return xReturn;
 }
 
 /* Abstraction of pxUDPSocketLookup */
@@ -48,25 +85,23 @@ FreeRTOS_Socket_t * pxUDPSocketLookup( UBaseType_t uxLocalPort )
 
 void harness()
 {
-    NetworkBufferDescriptor_t * pxNetworkBuffer = safeMalloc( sizeof( NetworkBufferDescriptor_t ) );
-    BaseType_t * pxIsWaitingForARPResolution;
-
-    pxIsWaitingForARPResolution = safeMalloc( sizeof( BaseType_t ) );
-
-    /* The function under test is only called by the IP-task. The below pointer is an
-     * address of a local variable which is being passed to the function under test.
-     * Thus, it cannot ever be NULL. */
-    __CPROVER_assume( pxIsWaitingForARPResolution != NULL );
-
-    if( pxNetworkBuffer )
-    {
-        pxNetworkBuffer->pucEthernetBuffer = safeMalloc( sizeof( UDPPacket_t ) );
-    }
-
+    NetworkBufferDescriptor_t * pxNetworkBuffer;
+    BaseType_t xIsWaitingForARPResolution;
+    NetworkEndPoint_t xEndpoint;
     uint16_t usPort;
+    EthernetHeader_t * pxHeader;
 
-    if( pxNetworkBuffer && pxNetworkBuffer->pucEthernetBuffer )
-    {
-        xProcessReceivedUDPPacket( pxNetworkBuffer, usPort, pxIsWaitingForARPResolution );
-    }
+    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( sizeof( UDPPacket_t ), 0 );
+    /* The network buffer must not be NULL, checked in prvProcessEthernetPacket. */
+    __CPROVER_assume( pxNetworkBuffer != NULL );
+    __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
+    pxNetworkBuffer->pxEndPoint = &xEndpoint;
+
+    /* In this test case, we only focus on IPv4. */
+    pxHeader = ( ( const EthernetHeader_t * ) pxNetworkBuffer->pucEthernetBuffer );
+    __CPROVER_assume( pxHeader->usFrameType != ipIPv6_FRAME_TYPE );
+
+    xIsWaitingForARPResolution = nondet_BaseType();
+    xProcessReceivedUDPPacket( pxNetworkBuffer, usPort, &xIsWaitingForARPResolution );
 }

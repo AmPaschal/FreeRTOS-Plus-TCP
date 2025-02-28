@@ -1,6 +1,6 @@
 /*
- * FreeRTOS V202212.00
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * FreeRTOS+TCP <DEVELOPMENT BRANCH>
+ * Copyright (C) 2022 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -19,10 +19,10 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * https://www.FreeRTOS.org
- * https://github.com/FreeRTOS
- *
+ * http://aws.amazon.com/freertos
+ * http://www.FreeRTOS.org
  */
+
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
 
@@ -33,182 +33,203 @@
  * application requirements.
  *
  * THESE PARAMETERS ARE DESCRIBED WITHIN THE 'CONFIGURATION' SECTION OF THE
- * FreeRTOS API DOCUMENTATION AVAILABLE ON THE FreeRTOS.org WEB SITE.  See
- * https://www.FreeRTOS.org/a00110.html
+ * FreeRTOS API DOCUMENTATION AVAILABLE ON THE FreeRTOS.org WEB SITE.
+ * http://www.freertos.org/a00110.html
+ *
+ * The bottom of this file contains some constants specific to running the UDP
+ * stack in this demo.  Constants specific to FreeRTOS+TCP itself (rather than
+ * the demo) are contained in FreeRTOSIPConfig.h.
  *----------------------------------------------------------*/
-
+#define configENABLE_BACKWARD_COMPATIBILITY 1
 #define configUSE_PREEMPTION 1
-#define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
-#define configUSE_IDLE_HOOK 1
-#define configUSE_TICK_HOOK 1
-#define configUSE_DAEMON_TASK_STARTUP_HOOK 1
-#define configTICK_RATE_HZ (1000)                    /* In this non-real time simulated environment the tick frequency has to be at least a multiple of the Win32 tick frequency, and therefore very slow. */
-#define configMINIMAL_STACK_SIZE (PTHREAD_STACK_MIN) /* The stack size being passed is equal to the minimum stack size needed by pthread_create(). */
-#define configTOTAL_HEAP_SIZE ((size_t)(65 * 1024))
-#define configMAX_TASK_NAME_LEN (12)
-#define configUSE_TRACE_FACILITY 1
+#define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
+#define configMAX_PRIORITIES (7)
+#define configTICK_RATE_HZ (1000)                     /* In this non-real time simulated environment the tick frequency has to be at least a multiple of the Win32 tick frequency, and therefore very slow. */
+#define configMINIMAL_STACK_SIZE ((unsigned short)60) /* In this simulated case, the stack only has to hold one small structure as the real stack is part of the Win32 thread. */
+#define configTOTAL_HEAP_SIZE ((size_t)(2048U * 1024U))
+#define configMAX_TASK_NAME_LEN (15)
+#ifndef configUSE_16_BIT_TICKS
 #define configUSE_16_BIT_TICKS 0
+#endif
 #define configIDLE_SHOULD_YIELD 1
+#ifndef configUSE_MUTEXES
 #define configUSE_MUTEXES 1
-#define configCHECK_FOR_STACK_OVERFLOW 0
+#endif
+#ifndef configUSE_RECURSIVE_MUTEXES
 #define configUSE_RECURSIVE_MUTEXES 1
-#define configQUEUE_REGISTRY_SIZE 20
+#endif
+#define configQUEUE_REGISTRY_SIZE 0
 #define configUSE_APPLICATION_TASK_TAG 1
 #define configUSE_COUNTING_SEMAPHORES 1
 #define configUSE_ALTERNATIVE_API 0
-#define configUSE_QUEUE_SETS 1
-#define configUSE_TASK_NOTIFICATIONS 1
-
-/* The following 2  memory allocation schemes are possible for this demo:
- *
- * 1. Dynamic Only.
- *    #define configSUPPORT_STATIC_ALLOCATION  0
- *    #define configSUPPORT_DYNAMIC_ALLOCATION 1
- *
- * 2. Static and Dynamic.
- *    #define configSUPPORT_STATIC_ALLOCATION  1
- *    #define configSUPPORT_DYNAMIC_ALLOCATION 1
- *
- * Static only configuration is not possible for this demo as it utilizes
- * dynamic allocation.
- */
-#define configSUPPORT_STATIC_ALLOCATION 1
-#define configSUPPORT_DYNAMIC_ALLOCATION 1
-
+#define configNUM_THREAD_LOCAL_STORAGE_POINTERS 3 /* FreeRTOS+FAT requires 2 pointers if a CWD is supported. */
 #define configRECORD_STACK_HIGH_ADDRESS 1
 
-/* Software timer related configuration options.  The maximum possible task
- * priority is configMAX_PRIORITIES - 1.  The priority of the timer task is
- * deliberately set higher to ensure it is correctly capped back to
- * configMAX_PRIORITIES - 1. */
+/* Hook function related definitions. */
+#ifndef configUSE_TICK_HOOK
+#define configUSE_TICK_HOOK 0
+#endif
+#define configUSE_IDLE_HOOK 1
+#define configUSE_MALLOC_FAILED_HOOK 1
+#define configCHECK_FOR_STACK_OVERFLOW 0 /* Not applicable to the Win32 port. */
+
+/* Software timer related definitions. */
 #define configUSE_TIMERS 1
 #define configTIMER_TASK_PRIORITY (configMAX_PRIORITIES - 1)
-#define configTIMER_QUEUE_LENGTH 20
+#define configTIMER_QUEUE_LENGTH 5
 #define configTIMER_TASK_STACK_DEPTH (configMINIMAL_STACK_SIZE * 2)
 
-#define configMAX_PRIORITIES (7)
+/* Event group related definitions. */
+#define configUSE_EVENT_GROUPS 1
 
-/* Run time stats gathering configuration options. */
-unsigned long ulGetRunTimeCounterValue(void); /* Prototype of function that returns run time counter. */
-void vConfigureTimerForRunTimeStats(void);    /* Prototype of function that initialises the run time counter. */
-#define configGENERATE_RUN_TIME_STATS 1
-
-/* Co-routine related configuration options. */
-#define configUSE_CO_ROUTINES 0
-#define configMAX_CO_ROUTINE_PRIORITIES (2)
-
-/* This demo can use of one or more example stats formatting functions.  These
- * format the raw data provided by the uxTaskGetSystemState() function in to human
- * readable ASCII form.  See the notes in the implementation of vTaskList() within
- * FreeRTOS/Source/tasks.c for limitations. */
-#define configUSE_STATS_FORMATTING_FUNCTIONS 0
-
-/* Enables the test whereby a stack larger than the total heap size is
- * requested. */
-#define configSTACK_DEPTH_TYPE uint32_t
+/* Memory allocation strategy. */
+#ifndef configSUPPORT_DYNAMIC_ALLOCATION
+#define configSUPPORT_DYNAMIC_ALLOCATION 1
+#endif
+#ifndef configSUPPORT_STATIC_ALLOCATION
+#define configSUPPORT_STATIC_ALLOCATION 1
+#endif
 
 /* Set the following definitions to 1 to include the API function, or zero
- * to exclude the API function.  In most cases the linker will remove unused
- * functions anyway. */
+ * to exclude the API function. */
 #define INCLUDE_vTaskPrioritySet 1
 #define INCLUDE_uxTaskPriorityGet 1
 #define INCLUDE_vTaskDelete 1
 #define INCLUDE_vTaskCleanUpResources 0
+#ifndef INCLUDE_vTaskSuspend
 #define INCLUDE_vTaskSuspend 1
+#endif
 #define INCLUDE_vTaskDelayUntil 1
 #define INCLUDE_vTaskDelay 1
 #define INCLUDE_uxTaskGetStackHighWaterMark 1
-#define INCLUDE_uxTaskGetStackHighWaterMark2 1
+#ifndef INCLUDE_xTaskGetSchedulerState
 #define INCLUDE_xTaskGetSchedulerState 1
-#define INCLUDE_xTimerGetTimerDaemonTaskHandle 1
-#define INCLUDE_xTaskGetIdleTaskHandle 1
-#define INCLUDE_xTaskGetHandle 1
+#endif
+#define INCLUDE_xTimerGetTimerTaskHandle 0
+#define INCLUDE_xTaskGetIdleTaskHandle 0
+#define INCLUDE_xQueueGetMutexHolder 1
 #define INCLUDE_eTaskGetState 1
-#define INCLUDE_xSemaphoreGetMutexHolder 1
+#define INCLUDE_xEventGroupSetBitsFromISR 1
 #define INCLUDE_xTimerPendFunctionCall 1
+#define INCLUDE_xTaskGetCurrentTaskHandle 1
 #define INCLUDE_xTaskAbortDelay 1
 
-#define configINCLUDE_MESSAGE_BUFFER_AMP_DEMO 0
-#if (configINCLUDE_MESSAGE_BUFFER_AMP_DEMO == 1)
-extern void vGenerateCoreBInterrupt(void *xUpdatedMessageBuffer);
-#define sbSEND_COMPLETED(pxStreamBuffer) vGenerateCoreBInterrupt(pxStreamBuffer)
-#endif /* configINCLUDE_MESSAGE_BUFFER_AMP_DEMO */
+/* This demo makes use of one or more example stats formatting functions.  These
+ * format the raw data provided by the uxTaskGetSystemState() function in to human
+ * readable ASCII form.  See the notes in the implementation of vTaskList() within
+ * FreeRTOS/Source/tasks.c for limitations.  configUSE_STATS_FORMATTING_FUNCTIONS
+ * is set to 2 so the formatting functions are included without the stdio.h being
+ * included in tasks.c.  That is because this project defines its own sprintf()
+ * functions. */
+#define configUSE_STATS_FORMATTING_FUNCTIONS 0
 
-extern void vAssertCalled(const char *const pcFileName,
-                          unsigned long ulLine);
-
-// Define the test coverage and tracing to be disabled
-
-#define projCOVERAGE_TEST 0
-#define projENABLE_TRACING 0
-
-/* projCOVERAGE_TEST should be defined on the command line so this file can be
- * used with multiple project configurations.  If it is
- */
-#ifndef projCOVERAGE_TEST
-#error projCOVERAGE_TEST should be defined to 1 or 0 on the command line.
-#endif
-
-#ifndef projENABLE_TRACING
-#error projENABLE_TRACING should be defined to 1 or 0 on the command line.
-#endif
-
-#if (projCOVERAGE_TEST == 1)
-
-/* Insert NOPs in empty decision paths to ensure both true and false paths
- * are being tested. */
-#define mtCOVERAGE_TEST_MARKER() __asm volatile("NOP")
-
-/* Ensure the tick count overflows during the coverage test. */
-#define configINITIAL_TICK_COUNT 0xffffd800UL
-
-/* Allows tests of trying to allocate more than the heap has free. */
-#define configUSE_MALLOC_FAILED_HOOK 0
-
-/* To test builds that remove the static qualifier for debug builds. */
-#define portREMOVE_STATIC_QUALIFIER
-#else /* if ( projCOVERAGE_TEST == 1 ) */
-
-/* It is a good idea to define configASSERT() while developing.  configASSERT()
- * uses the same semantics as the standard C assert() macro.  Don't define
- * configASSERT() when performing code coverage tests though, as it is not
- * intended to asserts() to fail, some some code is intended not to run if no
- * errors are present. */
+/* Assert call defined for debug builds. */
+extern void vAssertCalled(const char *pcFile,
+                          uint32_t ulLine);
+#ifndef configASSERT
 #define configASSERT(x) \
     if ((x) == 0)       \
     vAssertCalled(__FILE__, __LINE__)
+#endif
 
-#define configUSE_MALLOC_FAILED_HOOK 1
+/* Remove logging in formal verification */
+#define configPRINTF(X)
 
-/* Include the FreeRTOS+Trace FreeRTOS trace macro definitions. */
-#if (projENABLE_TRACING == 1)
-#include "trcRecorder.h"
-#endif /* if ( projENABLE_TRACING == 1 ) */
-#endif /* if ( projCOVERAGE_TEST == 1 ) */
+/* Non-format version thread-safe print. */
+#define configPRINT_STRING(X)
 
-/* networking definitions */
+/* Application specific definitions follow. **********************************/
+
+/* If configINCLUDE_DEMO_DEBUG_STATS is set to one, then a few basic IP trace
+ * macros are defined to gather some UDP stack statistics that can then be viewed
+ * through the CLI interface. */
+#define configINCLUDE_DEMO_DEBUG_STATS 1
+
+/* The size of the global output buffer that is available for use when there
+ * are multiple command interpreters running at once (for example, one on a UART
+ * and one on TCP/IP).  This is done to prevent an output buffer being defined by
+ * each implementation - which would waste RAM.  In this case, there is only one
+ * command interpreter running, and it has its own local output buffer, so the
+ * global buffer is just set to be one byte long as it is not used and should not
+ * take up unnecessary RAM. */
+#define configCOMMAND_INT_MAX_OUTPUT_SIZE 1
+
+/* Only used when running in the FreeRTOS Windows simulator.  Defines the
+ * priority of the task used to simulate Ethernet interrupts. */
 #define configMAC_ISR_SIMULATOR_PRIORITY (configMAX_PRIORITIES - 1)
 
-/* Prototype for the function used to print out.  In this case it prints to the
- * console before the network is connected then a UDP port after the network has
- * connected. */
-extern void vLoggingPrintf(const char *pcFormatString,
-                           ...);
+/* This demo creates a virtual network connection by accessing the raw Ethernet
+ * or WiFi data to and from a real network connection.  Many computers have more
+ * than one real network port, and configNETWORK_INTERFACE_TO_USE is used to tell
+ * the demo which real port should be used to create the virtual port.  The ports
+ * available are displayed on the console when the application is executed.  For
+ * example, on my development laptop setting configNETWORK_INTERFACE_TO_USE to 4
+ * results in the wired network being used, while setting
+ * configNETWORK_INTERFACE_TO_USE to 2 results in the wireless network being
+ * used. */
+#define configNETWORK_INTERFACE_TO_USE (0L)
 
-/* Set to 1 to print out debug messages.  If ipconfigHAS_DEBUG_PRINTF is set to
- * 1 then FreeRTOS_debug_printf should be defined to the function used to print
- * out the debugging messages. */
-#define ipconfigHAS_DEBUG_PRINTF 1
-#if (ipconfigHAS_DEBUG_PRINTF == 1)
-#define FreeRTOS_debug_printf(X) vLoggingPrintf X
-#endif
+/* The address of an echo server that will be used by the two demo echo client
+ * tasks:
+ * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_Echo_Clients.html
+ * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/UDP_Echo_Clients.html. */
+#define configECHO_SERVER_ADDR0 192
+#define configECHO_SERVER_ADDR1 168
+#define configECHO_SERVER_ADDR2 2
+#define configECHO_SERVER_ADDR3 6
+#define configTCP_ECHO_CLIENT_PORT 7
 
-/* Set to 1 to print out non debugging messages, for example the output of the
- * FreeRTOS_netstat() command, and ping replies.  If ipconfigHAS_PRINTF is set to 1
- * then FreeRTOS_printf should be set to the function used to print out the
- * messages. */
-#define ipconfigHAS_PRINTF 0
-#if (ipconfigHAS_PRINTF == 1)
-#define FreeRTOS_printf(X) vLoggingPrintf X
-#endif
+/* Default MAC address configuration.  The demo creates a virtual network
+ * connection that uses this MAC address by accessing the raw Ethernet/WiFi data
+ * to and from a real network connection on the host PC.  See the
+ * configNETWORK_INTERFACE_TO_USE definition above for information on how to
+ * configure the real network connection to use. */
+#define configMAC_ADDR0 0x00
+#define configMAC_ADDR1 0x11
+#define configMAC_ADDR2 0x22
+#define configMAC_ADDR3 0x33
+#define configMAC_ADDR4 0x44
+#define configMAC_ADDR5 0x21
+
+/* Default IP address configuration.  Used in ipconfigUSE_DHCP is set to 0, or
+ * ipconfigUSE_DHCP is set to 1 but a DNS server cannot be contacted. */
+#define configIP_ADDR0 192
+#define configIP_ADDR1 168
+#define configIP_ADDR2 0
+#define configIP_ADDR3 105
+
+/* Default gateway IP address configuration.  Used in ipconfigUSE_DHCP is set to
+ * 0, or ipconfigUSE_DHCP is set to 1 but a DNS server cannot be contacted. */
+#define configGATEWAY_ADDR0 192
+#define configGATEWAY_ADDR1 168
+#define configGATEWAY_ADDR2 0
+#define configGATEWAY_ADDR3 1
+
+/* Default DNS server configuration.  OpenDNS addresses are 208.67.222.222 and
+ * 208.67.220.220.  Used in ipconfigUSE_DHCP is set to 0, or ipconfigUSE_DHCP is
+ * set to 1 but a DNS server cannot be contacted.*/
+#define configDNS_SERVER_ADDR0 208
+#define configDNS_SERVER_ADDR1 67
+#define configDNS_SERVER_ADDR2 222
+#define configDNS_SERVER_ADDR3 222
+
+/* Default netmask configuration.  Used in ipconfigUSE_DHCP is set to 0, or
+ * ipconfigUSE_DHCP is set to 1 but a DNS server cannot be contacted. */
+#define configNET_MASK0 255
+#define configNET_MASK1 255
+#define configNET_MASK2 255
+#define configNET_MASK3 0
+
+/* The UDP port to which print messages are sent. */
+#define configPRINT_PORT (15000)
+
+#define configPROFILING (0)
+
+/* Pseudo random number generator used by some demo tasks. */
+extern uint32_t ulRand();
+#define configRAND32() ulRand()
+
+/* The platform that FreeRTOS is running on. */
+#define configPLATFORM_NAME "WinSim"
+
 #endif /* FREERTOS_CONFIG_H */

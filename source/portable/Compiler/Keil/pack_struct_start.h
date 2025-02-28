@@ -28,8 +28,9 @@
 /*****************************************************************************
 *
 * See the following URL for an explanation of this file:
-* http://www.FreeRTOS.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/Embedded_Compiler_Porting.html
+* https://freertos.org/Documentation/03-Libraries/02-FreeRTOS-plus/02-FreeRTOS-plus-TCP/10-Porting/02-Embedded_Compiler_Porting
 *
 *****************************************************************************/
 
+#pragma GCC diagnostic ignored "-Wpragma-pack"
 #pragma pack(push,1)
