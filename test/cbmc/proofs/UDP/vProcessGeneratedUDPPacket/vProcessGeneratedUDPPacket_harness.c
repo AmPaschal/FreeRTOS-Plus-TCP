@@ -19,6 +19,12 @@
 #include "memory_assignments.c"
 #include "freertos_api.c"
 
+/* vProcessGeneratedUDPPacket_IPv6 is proven separately. */
+void vProcessGeneratedUDPPacket_IPv6( NetworkBufferDescriptor_t * const pxNetworkBuffer )
+{
+    __CPROVER_assert( pxNetworkBuffer != NULL, "pxNetworkBuffer cannot be NULL" );
+}
+
 /* We do not need to calculate the actual checksum for the proof to be complete.
  * Neither does the checksum matter for completeness. */
 uint16_t usGenerateChecksum( uint16_t usSum,
@@ -32,7 +38,6 @@ uint16_t usGenerateChecksum( uint16_t usSum,
     /* Return any random value of checksum since it does not matter for CBMC checks. */
     return usChecksum;
 }
-
 
 /* We do not need to calculate the actual checksum for the proof to be complete.
  * Neither does the checksum matter for completeness. */
@@ -64,15 +69,26 @@ void vARPGenerateRequestPacket( NetworkBufferDescriptor_t * const pxNetworkBuffe
 
 
 /* This function has been tested separately. Therefore, we assume that the implementation is correct. */
-eARPLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
-                                      MACAddress_t * const pxMACAddress )
+eResolutionLookupResult_t eARPGetCacheEntry( uint32_t * pulIPAddress,
+                                             MACAddress_t * const pxMACAddress )
 {
     __CPROVER_assert( pulIPAddress != NULL, "pulIPAddress cannot be NULL" );
     __CPROVER_assert( pxMACAddress != NULL, "pxMACAddress cannot be NULL" );
 
-    eARPLookupResult_t eResult;
+    eResolutionLookupResult_t eResult;
 
     return eResult;
+}
+
+BaseType_t NetworkInterfaceOutputFunction_Stub( struct xNetworkInterface * pxDescriptor,
+                                                NetworkBufferDescriptor_t * const pxNetworkBuffer,
+                                                BaseType_t xReleaseAfterSend )
+{
+    __CPROVER_assert( pxDescriptor != NULL, "The network interface cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer != NULL, "The network buffer descriptor cannot be NULL." );
+    __CPROVER_assert( pxNetworkBuffer->pucEthernetBuffer != NULL, "The Ethernet buffer cannot be NULL." );
+    BaseType_t ret;
+    return ret;
 }
 
 
@@ -90,6 +106,37 @@ void harness()
     /* The buffer cannot be NULL for the function call. */
     __CPROVER_assume( pxNetworkBuffer != NULL );
     __CPROVER_assume( pxNetworkBuffer->pucEthernetBuffer != NULL );
+
+    /*
+     * Add an end point to the network buffer present. Its assumed that the
+     * network interface layer correctly assigns the end point to the generated buffer.
+     */
+    pxNetworkBuffer->pxEndPoint = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkBuffer->pxEndPoint != NULL );
+    pxNetworkBuffer->pxEndPoint->pxNext = NULL;
+
+    /* Add an interface */
+    pxNetworkBuffer->pxEndPoint->pxNetworkInterface = ( NetworkInterface_t * ) malloc( sizeof( NetworkInterface_t ) );
+    __CPROVER_assume( pxNetworkBuffer->pxEndPoint->pxNetworkInterface != NULL );
+
+    /* Add few endpoints to global pxNetworkEndPoints */
+    pxNetworkEndPoints = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+    __CPROVER_assume( pxNetworkEndPoints != NULL );
+    pxNetworkEndPoints->pxNetworkInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
+
+    if( nondet_bool() )
+    {
+        pxNetworkEndPoints->pxNext = ( NetworkEndPoint_t * ) malloc( sizeof( NetworkEndPoint_t ) );
+        __CPROVER_assume( pxNetworkEndPoints->pxNext != NULL );
+        pxNetworkEndPoints->pxNext->pxNetworkInterface = pxNetworkBuffer->pxEndPoint->pxNetworkInterface;
+        pxNetworkEndPoints->pxNext->pxNext = NULL;
+    }
+    else
+    {
+        pxNetworkEndPoints->pxNext = NULL;
+    }
+
+    pxNetworkBuffer->pxEndPoint->pxNetworkInterface->pfOutput = &NetworkInterfaceOutputFunction_Stub;
 
     vProcessGeneratedUDPPacket( pxNetworkBuffer );
 }
