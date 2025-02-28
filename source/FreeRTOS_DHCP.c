@@ -91,7 +91,7 @@
 /*
  * Interpret message received on the DHCP socket.
  */
-    static BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
+    BaseType_t prvProcessDHCPReplies( BaseType_t xExpectedMessageType,
                                              NetworkEndPoint_t * pxEndPoint );
 
 /*
