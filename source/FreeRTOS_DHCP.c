@@ -62,7 +62,7 @@
 
 
 /** @brief The UDP socket used for all incoming and outgoing DHCP traffic. */
-    _static Socket_t xDHCPv4Socket;
+    Socket_t xDHCPv4Socket;
 
     #if ( ipconfigDHCP_FALL_BACK_AUTO_IP != 0 )
         /* Define the Link Layer IP address: 169.254.x.x */
@@ -81,7 +81,7 @@
 /**
  * @brief The number of end-points that are making use of the UDP-socket.
  */
-    _static BaseType_t xDHCPSocketUserCount = 0;
+    BaseType_t xDHCPSocketUserCount = 0;
 
 /*
  * Generate a DHCP discover message and send it on the DHCP socket.
@@ -1393,6 +1393,18 @@
         {
             uint8_t * pucIPType;
 
+            // Determine if we have enough space to preform the case
+
+            uint32_t ipoff = ipUDP_PAYLOAD_IP_TYPE_OFFSET;
+            uint32_t udpoff = ipUDP_PAYLOAD_OFFSET_IPv4;
+            uint32_t size = pxNetworkBuffer->xDataLength;
+
+            if (pxNetworkBuffer->xDataLength < ipUDP_PAYLOAD_IP_TYPE_OFFSET)
+            {
+                // Not enough space, just return
+                return NULL;
+            }
+
             /* Leave space for the UDP header. */
             pucUDPPayloadBuffer = &( pxNetworkBuffer->pucEthernetBuffer[ ipUDP_PAYLOAD_OFFSET_IPv4 ] );
 
@@ -1533,6 +1545,9 @@
 
             FreeRTOS_debug_printf( ( "vDHCPProcess: reply %xip\n", ( unsigned ) FreeRTOS_ntohl( EP_DHCPData.ulOfferedIPAddress ) ) );
             iptraceSENDING_DHCP_REQUEST();
+
+            DHCPData_t data = EP_DHCPData;
+            Socket_t sock = EP_DHCPData.xDHCPSocket;
 
             EP_DHCPData.xDHCPSocket->pxEndPoint = pxEndPoint;
 
