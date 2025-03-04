@@ -16,6 +16,8 @@ extern BaseType_t xDHCPSocketUserCount;
 
 void dummy(struct xNetworkInterface *pxInterface, const uint8_t *pucMacAddressBytes) {}
 
+void FreeRTOS_ReleaseUDPPayloadBuffer(void const *pvBuffer) {}
+
 int32_t FreeRTOS_recvfrom( const ConstSocket_t xSocket, void * pvBuffer, size_t uxBufferLength, BaseType_t xFlags, struct freertos_sockaddr * pxSourceAddress, const socklen_t * pxSourceAddressLength ) {
 
     // Allocate some data of size:
@@ -56,7 +58,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
 
         __CPROVER_assume(buff->pucEthernetBuffer != NULL);
 
-        // Now, move the buffer 48 positions forward:
+        // Now, move the buffer 100 positions forward:
 
         buff->pucEthernetBuffer += off;
         buff->xDataLength -= off;
