@@ -553,8 +553,7 @@
 
                                 // Determine if the name offsets are bad:
 
-                                uint64_t osize = (uint64_t)((uint64_t)pcRequestedName - (uint64_t)pucNewBuffer);
-
+                                
                                 pxAnswer->ucNameCode = dnsNAME_IS_OFFSET;
                                 pxAnswer->ucNameOffset = ( uint8_t ) ( xSet.pcRequestedName - ( char * ) pucNewBuffer );
 
