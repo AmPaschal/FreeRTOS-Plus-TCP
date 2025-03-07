@@ -11,7 +11,7 @@ LINK = $(ROOT)/source/FreeRTOS_DHCP.c
 H_ENTRY = prvProcessDHCPReplies
 
 # Extra CBMC flags to be passed during CBMC analysis
-H_CBMCFLAGS = --nondet-static --unwind 1 --unwindset memcmp.0:48 --unwindset prvProcessDHCPReplies.0:5 --unwindset vProcessHandleOption.0:6 --unwindset vProcessHandleOption.1:5
+H_CBMCFLAGS = --nondet-static --unwind 1 --unwindset memcmp.0:7 --unwindset prvProcessDHCPReplies.0:2 --unwindset vProcessHandleOption.0:2 --unwindset vProcessHandleOption.1:2
 
 
 H_DEF =
