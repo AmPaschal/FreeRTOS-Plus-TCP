@@ -1272,8 +1272,8 @@
             pxDHCPMessage = ( ( DHCPMessage_IPv4_t * ) pucUDPPayload );
 
             /* Sanity check. */
-            if (pdFALSE) // Recreates CVE-2018-16602
-            // if( lBytes < ( int32_t ) sizeof( DHCPMessage_IPv4_t ) )
+            // if (pdFALSE) // Recreates CVE-2018-16602
+            if( lBytes < ( int32_t ) sizeof( DHCPMessage_IPv4_t ) )
             {
                 /* Not enough bytes. */
             }

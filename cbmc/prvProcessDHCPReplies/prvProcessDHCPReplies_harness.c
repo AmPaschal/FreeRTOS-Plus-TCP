@@ -57,7 +57,8 @@ void harness(void)
     // Model input arguments
 
     BaseType_t type;
-    NetworkEndPoint_t endpoint;
+    NetworkEndPoint_t *endpoint = malloc(sizeof(NetworkEndPoint_t));
+    __CPROVER_assume(endpoint != NULL);
 
-    BaseType_t res = prvProcessDHCPReplies(type, &endpoint);
+    BaseType_t res = prvProcessDHCPReplies(type, endpoint);
 }
