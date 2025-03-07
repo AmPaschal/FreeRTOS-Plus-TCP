@@ -267,7 +267,8 @@
                         lIndex = -1;
 
                         /* Return Condition found. */
-                        xReturn = pdTRUE;
+                        // Commenting to recreate CVE-2018-16523
+                        // xReturn = pdTRUE;
                     }
                     else
                     {
@@ -280,10 +281,11 @@
                 {
                     /* Restrict the minimum value of segment length to the ( Minimum IP MTU (576) - IP header(20) - TCP Header(20) ).
                      * See "RFC 791 section 3.1 Total Length" for more details. */
-                    if( uxNewMSS < tcpMINIMUM_SEGMENT_LENGTH )
-                    {
-                        uxNewMSS = tcpMINIMUM_SEGMENT_LENGTH;
-                    }
+                    // Commenting to recreate CVE-2018-16523
+                    // if( uxNewMSS < tcpMINIMUM_SEGMENT_LENGTH )
+                    // {
+                    //     uxNewMSS = tcpMINIMUM_SEGMENT_LENGTH;
+                    // }
 
                     if( pxSocket->u.xTCP.usMSS > uxNewMSS )
                     {
