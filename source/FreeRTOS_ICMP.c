@@ -87,7 +87,8 @@
 
         configASSERT( pxNetworkBuffer->xDataLength >= sizeof( ICMPPacket_t ) );
 
-        if( pxNetworkBuffer->xDataLength >= sizeof( ICMPPacket_t ) )
+        if (pdTRUE) // Uncomment to recreate CVE-2018-16527
+        // if( pxNetworkBuffer->xDataLength >= sizeof( ICMPPacket_t ) )
         {
             /* Map the buffer onto a ICMP-Packet struct to easily access the
              * fields of ICMP packet. */
