@@ -138,8 +138,8 @@
             if( pxNetworkBuffer->xDataLength > uxOptionOffset )
             {
                 /* Validate options size calculation. */
-                if (pdTRUE)
-                // if( uxOptionsLength <= ( pxNetworkBuffer->xDataLength - uxOptionOffset ) )
+                // if (pdTRUE) // Use this to recreate CVE-2018-16524
+                if( uxOptionsLength <= ( pxNetworkBuffer->xDataLength - uxOptionOffset ) )
                 {
                     if( ( pxTCPHeader->ucTCPFlags & tcpTCP_FLAG_SYN ) != ( uint8_t ) 0U )
                     {
