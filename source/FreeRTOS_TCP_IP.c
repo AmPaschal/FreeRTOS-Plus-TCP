@@ -762,6 +762,7 @@
         uxIPHeaderOffset = ipSIZE_OF_ETH_HEADER + uxIPHeaderSizePacket( pxNetworkBuffer );
 
         /* Check for a minimum packet size. */
+        // if (pdFALSE) // Use this to recreate CVE-2018-16603
         if( pxNetworkBuffer->xDataLength < ( uxIPHeaderOffset + ipSIZE_OF_TCP_HEADER ) )
         {
             xResult = pdFAIL;
