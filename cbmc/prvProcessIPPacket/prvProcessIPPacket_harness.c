@@ -9,16 +9,6 @@
  #include "FreeRTOS.h"
  #include "FreeRTOS_IP.h"
  
-//  BaseType_t xNetworkInterfaceOutput( NetworkBufferDescriptor_t * const pxDescriptor, BaseType_t xReleaseAfterSend ) {
-//      BaseType_t res;
-//      return res;
-//  }
- 
-//  BaseType_t xProcessReceivedTCPPacket( NetworkBufferDescriptor_t * pxDescriptor ) {
-//      BaseType_t res;
-//      return res;
-//  }
- 
  /**
   * @brief Starting point for formal analysis
   * 
