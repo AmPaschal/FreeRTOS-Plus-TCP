@@ -305,6 +305,7 @@
 #define ipconfigSOCKET_HAS_USER_WAKE_CALLBACK (1)
 #endif
 #define ipconfigUSE_CALLBACKS (0)
+#define ipconfigUSE_LLMNR (1)
 
 #define portINLINE __inline
 
