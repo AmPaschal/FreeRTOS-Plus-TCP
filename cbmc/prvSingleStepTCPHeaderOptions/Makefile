@@ -20,5 +20,8 @@ H_INC = -I$(ROOT) -I../include/ -I$(ROOT)/sys/include/  \
         -I$(ROOT)/test/FreeRTOS-Kernel/include \
         -I$(ROOT)/source/include
 
+ENABLE_BUILD = 0
+
 # Include our special build file
-include ../Makefile.include
+MAKE_INCLUDE_PATH ?= ..
+include $(MAKE_INCLUDE_PATH)/Makefile.include
