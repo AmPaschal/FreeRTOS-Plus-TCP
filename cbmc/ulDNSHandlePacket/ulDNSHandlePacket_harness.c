@@ -19,7 +19,11 @@ uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer, size_t uxBufferLength
 
     // Set address info to allocated data
 
-    *ppxAddressInfo = pxAddressInfo;
+    if (pxAddressInfo != NULL) {
+        pxAddressInfo->ai_next = NULL;
+    }
+
+    *ppxAddressInfo = pxAddressInfo; 
 
     // Return unconstrained uint32_t
 
@@ -35,17 +39,18 @@ uint32_t DNS_ParseDNSReply( uint8_t * pucUDPPayloadBuffer, size_t uxBufferLength
 void harness(void)
 {
 
-    NetworkBufferDescriptor_t buff;
+    NetworkBufferDescriptor_t *buff = malloc(sizeof(NetworkBufferDescriptor_t));
+    __CPROVER_assume(buff != NULL);
 
     // Constrain the size:
 
-    __CPROVER_assume(buff.xDataLength >= sizeof(EthernetHeader_t));  // MUST be larger than ethernet header
+    __CPROVER_assume(buff->xDataLength >= sizeof(EthernetHeader_t));  // MUST be larger than ethernet header
 
     // Allocate input data:
 
-    buff.pucEthernetBuffer = malloc(buff.xDataLength);
+    buff->pucEthernetBuffer = malloc(buff->xDataLength);
 
-    __CPROVER_assume(buff.pucEthernetBuffer != NULL);  // Data will not be NULL
+    __CPROVER_assume(buff->pucEthernetBuffer != NULL);  // Data will not be NULL
 
-    uint32_t res = ulDNSHandlePacket(&buff);
+    uint32_t res = ulDNSHandlePacket(buff);
 }
