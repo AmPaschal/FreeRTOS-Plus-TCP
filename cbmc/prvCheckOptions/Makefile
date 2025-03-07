@@ -21,4 +21,5 @@ H_INC = -I$(ROOT) -I../include/ -I$(ROOT)/sys/include/  \
         -I$(ROOT)/source/include
 
 # Include our special build file
-include ../Makefile.include
+MAKE_INCLUDE_PATH ?= ..
+include $(MAKE_INCLUDE_PATH)/Makefile.include
