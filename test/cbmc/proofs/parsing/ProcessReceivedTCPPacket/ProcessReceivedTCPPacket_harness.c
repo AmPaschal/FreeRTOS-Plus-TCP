@@ -153,6 +153,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     if( pxNetworkBuffer )
     {
         pxNetworkBuffer->pucEthernetBuffer = safeMalloc( xRequestedSizeBytes );
+        // BUG: The previous version fixed the xDataLength value, preventing code coverage.
         pxNetworkBuffer->xDataLength = xRequestedSizeBytes;
     }
 
@@ -176,6 +177,7 @@ size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket )
 void harness()
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
+    // BUG: We need to make the size of input packet nondeterministic.
     size_t tcpPacketSize;
 
     pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( tcpPacketSize, 0 );
