@@ -47,6 +47,8 @@ void prvTCPReturnPacket( FreeRTOS_Socket_t * pxSocket,
                          uint32_t ulLen,
                          BaseType_t xReleaseAfterSend )
 {
+    // BUG: xProcessReceivedTCPPacket calls this prvTCPReturnPacket function with pxSocket being NULL. 
+    // This causes this assertion to be violated.
     __CPROVER_assert( pxSocket != NULL, "pxSocket should not be NULL" );
     __CPROVER_assert( pxDescriptor != NULL, "pxDescriptor should not be NULL" );
     __CPROVER_assert( pxDescriptor->pucEthernetBuffer != NULL, "pucEthernetBuffer should not be NULL" );
@@ -151,7 +153,7 @@ NetworkBufferDescriptor_t * pxGetNetworkBufferWithDescriptor( size_t xRequestedS
     if( pxNetworkBuffer )
     {
         pxNetworkBuffer->pucEthernetBuffer = safeMalloc( xRequestedSizeBytes );
-        __CPROVER_assume( pxNetworkBuffer->xDataLength == ipSIZE_OF_ETH_HEADER + sizeof( int32_t ) );
+        pxNetworkBuffer->xDataLength = xRequestedSizeBytes;
     }
 
     return pxNetworkBuffer;
@@ -174,8 +176,9 @@ size_t uxIPHeaderSizeSocket( const FreeRTOS_Socket_t * pxSocket )
 void harness()
 {
     NetworkBufferDescriptor_t * pxNetworkBuffer;
+    size_t tcpPacketSize;
 
-    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( sizeof( TCPPacket_t ), 0 );
+    pxNetworkBuffer = pxGetNetworkBufferWithDescriptor( tcpPacketSize, 0 );
 
     /* To avoid asserting on the network buffer being NULL. */
     __CPROVER_assume( pxNetworkBuffer != NULL );
